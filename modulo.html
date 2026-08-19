@@ -133,6 +133,12 @@ const MODULE_TARGETS = {
   SOPORTE:  IS_LOCAL ? 'http://localhost:5514' : 'https://qubira-soporte.vercel.app',
 };
 
+/* TI/ADG son SPA — el traspaso lo recibe app.js en cualquier ruta,
+   incluida la raíz. RRHH/Soporte son un index.html estático con un
+   login.html aparte que recibe el traspaso — mandarlo a la raíz haría
+   que el gate de sesión de index.html lo descarte antes de leerlo. */
+const MODULE_HANDOFF_PATH = { TI: '/', ADG: '/', RRHH: '/login.html', SOPORTE: '/login.html' };
+
 const MODULE_META = {
   TI:        { label: 'TI',         desc: 'Proyectos técnicos, tecnologías y cronogramas.', letter: 'TI' },
   ADG:       { label: 'ADG',        desc: 'Aprobación y administración de proyectos.',       letter: 'AD' },
@@ -203,7 +209,8 @@ async function enterModule(mod) {
       alert(data.error || 'No se pudo abrir el módulo. Intenta de nuevo.');
       return;
     }
-    window.location.href = `${target}/?handoff=${encodeURIComponent(data.code)}`;
+    const path = MODULE_HANDOFF_PATH[mod] || '/';
+    window.location.href = `${target}${path}?handoff=${encodeURIComponent(data.code)}`;
   } catch (err) {
     alert('No se pudo conectar con el servidor.');
   }
