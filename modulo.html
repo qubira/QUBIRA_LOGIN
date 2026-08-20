@@ -98,27 +98,32 @@
 
   .modules {
     display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 300px)); gap: 16px;
+    align-items: stretch;
   }
   .module-card {
     --accent: var(--primary);
     --accent-light: var(--primary-light);
-    display: flex; flex-direction: column; overflow: hidden;
+    display: flex; flex-direction: column; overflow: hidden; height: 100%;
     background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius);
     box-shadow: var(--shadow); text-align: left; cursor: pointer;
-    transition: box-shadow .15s ease, border-color .15s ease, transform .15s ease;
+    transition: box-shadow .18s ease, border-color .18s ease, transform .18s ease;
     font: inherit; color: inherit;
   }
-  .module-card:not(:disabled):hover { box-shadow: var(--shadow-hover); border-color: color-mix(in srgb, var(--accent) 35%, var(--border)); transform: translateY(-2px); }
+  .module-card:not(:disabled):hover { box-shadow: var(--shadow-hover); border-color: color-mix(in srgb, var(--accent) 35%, var(--border)); transform: translateY(-3px); }
+  .module-card:not(:disabled):hover .module-icon { transform: scale(1.06); }
+  .module-card:not(:disabled):hover .module-card__enter span { transform: translateX(3px); }
   .module-card:disabled { cursor: not-allowed; }
+  .module-card:not(:disabled):focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
   .module-card__banner {
     background: var(--accent-light); padding: 16px 18px; display: flex; align-items: center; justify-content: space-between;
   }
   .module-icon {
     width: 40px; height: 40px; border-radius: 10px; background: var(--card-bg); color: var(--accent);
-    display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 800;
-    letter-spacing: -.01em; box-shadow: inset 0 0 0 1px rgba(17,24,39,.05);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: inset 0 0 0 1px rgba(17,24,39,.05); transition: transform .18s ease;
   }
+  .module-icon svg { width: 20px; height: 20px; }
   .module-card__status {
     font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--accent);
     display: flex; align-items: center; gap: 5px;
@@ -136,9 +141,22 @@
     margin-top: 4px; font-size: 11.5px; font-weight: 700; color: var(--accent);
     display: flex; align-items: center; gap: 5px;
   }
+  .module-card__enter span { display: inline-block; transition: transform .18s ease; }
 
-  .empty-state, .loading { text-align: center; color: var(--text-muted); padding: 40px 20px; max-width: 1080px; margin: 0 auto; }
+  .empty-state { text-align: center; color: var(--text-muted); padding: 40px 20px; max-width: 1080px; margin: 0 auto; }
   .empty-state strong { color: var(--text); }
+
+  .loading { max-width: 1080px; margin: 0 auto; }
+  .skeleton-card {
+    height: 168px; border-radius: var(--radius); background: var(--card-bg); border: 1px solid var(--border);
+    overflow: hidden; position: relative;
+  }
+  .skeleton-card::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(17,24,39,.05), transparent);
+    animation: shimmer 1.4s infinite;
+  }
+  @keyframes shimmer { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
 
   footer {
     display: flex; align-items: center; justify-content: center; gap: 10px;
@@ -191,7 +209,13 @@
   </div>
 
   <main>
-    <div id="modules-container" class="loading">Cargando módulos autorizados…</div>
+    <div id="modules-container" class="loading">
+      <div class="modules">
+        <div class="skeleton-card"></div>
+        <div class="skeleton-card"></div>
+        <div class="skeleton-card"></div>
+      </div>
+    </div>
   </main>
 
   <footer>
@@ -226,15 +250,26 @@ const MODULE_TARGETS = {
    que el gate de sesión de index.html lo descarte antes de leerlo. */
 const MODULE_HANDOFF_PATH = { TI: '/', ADG: '/', RRHH: '/login.html', SOPORTE: '/login.html', DST: '/login.html' };
 
-/* accent/accentLight/group solo cambian la presentación de la tarjeta
-   (color, en qué sección aparece) — nada funcional. */
+/* Íconos en línea (trazo simple, estilo Feather) en vez de las
+   iniciales de dos letras — accent/accentLight/group solo cambian la
+   presentación de la tarjeta (color, en qué sección aparece), nada
+   funcional. */
+const ICONS = {
+  cpu: '<rect x="6" y="6" width="12" height="12" rx="1.5"></rect><rect x="9" y="9" width="6" height="6" rx="1"></rect><line x1="9" y1="1" x2="9" y2="4"></line><line x1="15" y1="1" x2="15" y2="4"></line><line x1="9" y1="20" x2="9" y2="23"></line><line x1="15" y1="20" x2="15" y2="23"></line><line x1="1" y1="9" x2="4" y2="9"></line><line x1="1" y1="15" x2="4" y2="15"></line><line x1="20" y1="9" x2="23" y2="9"></line><line x1="20" y1="15" x2="23" y2="15"></line>',
+  clipboard: '<rect x="5" y="4" width="14" height="17" rx="2"></rect><path d="M9 3h6a1 1 0 0 1 1 1v1H8V4a1 1 0 0 1 1-1z"></path><polyline points="8.5 12.5 11 15 16 9"></polyline>',
+  users: '<circle cx="9" cy="8" r="3"></circle><path d="M3 20c0-3.5 2.5-6 6-6s6 2.5 6 6"></path><circle cx="17" cy="8" r="2.4"></circle><path d="M15.5 14.2c2.6.4 4.5 2.6 4.5 5.8"></path>',
+  headset: '<path d="M4 13a8 8 0 0 1 16 0"></path><rect x="2.5" y="13" width="4" height="7" rx="2"></rect><rect x="17.5" y="13" width="4" height="7" rx="2"></rect>',
+  cart: '<circle cx="9" cy="20" r="1.3"></circle><circle cx="18" cy="20" r="1.3"></circle><path d="M2.5 3h2.3l2.4 12.4a2 2 0 0 0 2 1.6h8.4a2 2 0 0 0 2-1.6L21.5 7H6"></path>',
+  shield: '<path d="M12 3l7 3v6c0 5-3.5 8.5-7 9-3.5-.5-7-4-7-9V6l7-3z"></path>',
+};
+
 const MODULE_META = {
-  TI:        { label: 'TI',         desc: 'Proyectos técnicos, tecnologías y cronogramas.', letter: 'TI', accent: '#1d4ed8', accentLight: '#dbeafe', group: 'ops' },
-  ADG:       { label: 'ADG',        desc: 'Aprobación y administración de proyectos.',       letter: 'AD', accent: '#6d28d9', accentLight: '#ede9fe', group: 'ops' },
-  RRHH:      { label: 'RR. HH.',    desc: 'Personal, contratos, nómina y reclutamiento.',    letter: 'RH', accent: '#047857', accentLight: '#d1fae5', group: 'ops' },
-  SOPORTE:   { label: 'Soporte',    desc: 'Mesa de ayuda y soporte técnico.',                letter: 'SO', accent: '#b45309', accentLight: '#fef3c7', group: 'ops' },
-  COMERCIAL: { label: 'Comercial',  desc: 'Próximamente.',                                    letter: 'CO', accent: '#6b7280', accentLight: '#f3f4f6', group: 'ops' },
-  DST:       { label: 'DST',        desc: 'Seguridad, accesos y auditoría del ecosistema.',  letter: 'DS', accent: '#b91c1c', accentLight: '#fee2e2', group: 'security' },
+  TI:        { label: 'TI',         desc: 'Proyectos técnicos, tecnologías y cronogramas.', icon: ICONS.cpu,       accent: '#1d4ed8', accentLight: '#dbeafe', group: 'ops' },
+  ADG:       { label: 'ADG',        desc: 'Aprobación y administración de proyectos.',       icon: ICONS.clipboard, accent: '#6d28d9', accentLight: '#ede9fe', group: 'ops' },
+  RRHH:      { label: 'RR. HH.',    desc: 'Personal, contratos, nómina y reclutamiento.',    icon: ICONS.users,     accent: '#047857', accentLight: '#d1fae5', group: 'ops' },
+  SOPORTE:   { label: 'Soporte',    desc: 'Mesa de ayuda y soporte técnico.',                icon: ICONS.headset,   accent: '#b45309', accentLight: '#fef3c7', group: 'ops' },
+  COMERCIAL: { label: 'Comercial',  desc: 'Próximamente.',                                    icon: ICONS.cart,      accent: '#6b7280', accentLight: '#f3f4f6', group: 'ops' },
+  DST:       { label: 'DST',        desc: 'Seguridad, accesos y auditoría del ecosistema.',  icon: ICONS.shield,    accent: '#b91c1c', accentLight: '#fee2e2', group: 'security' },
 };
 
 const GROUP_LABELS = { ops: 'Áreas operativas', security: 'Seguridad y accesos' };
@@ -264,19 +299,21 @@ function renderSession(user) {
 }
 
 function moduleCardHtml(mod) {
-  const meta = MODULE_META[mod] || { label: mod, desc: '', letter: mod.slice(0, 2), accent: '#4f46e5', accentLight: '#eef2ff' };
+  const meta = MODULE_META[mod] || { label: mod, desc: '', icon: ICONS.cpu, accent: '#4f46e5', accentLight: '#eef2ff' };
   const hasTarget = !!MODULE_TARGETS[mod];
   return `
   <button type="button" class="module-card" data-module="${mod}" ${hasTarget ? '' : 'disabled'}
     style="--accent:${meta.accent};--accent-light:${meta.accentLight}">
     <div class="module-card__banner">
-      <div class="module-icon">${meta.letter}</div>
+      <div class="module-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${meta.icon}</svg>
+      </div>
       <div class="module-card__status">${hasTarget ? 'Disponible' : 'Próximamente'}</div>
     </div>
     <div class="module-card__body">
       <h3>${meta.label}</h3>
       <p>${meta.desc}</p>
-      ${hasTarget ? '<span class="module-card__enter">Entrar →</span>' : ''}
+      ${hasTarget ? '<span class="module-card__enter">Entrar <span>→</span></span>' : ''}
     </div>
   </button>`;
 }
