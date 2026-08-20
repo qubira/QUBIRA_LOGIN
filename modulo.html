@@ -5,25 +5,24 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>QUBIRA | Selección de módulo</title>
 <link rel="icon" href="https://raw.githubusercontent.com/qubira/IMAGENES/main/logo2.png" type="image/png">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root {
-    --sidebar-bg: #0b1120;
-    --sidebar-bg-2: #151f38;
+    --sidebar-bg: #111827;
     --primary: #4f46e5;
-    --primary-2: #818cf8;
     --primary-dark: #4338ca;
     --primary-light: #eef2ff;
     --bg: #f3f4f6;
     --card-bg: #ffffff;
-    --border: #e5e7eb;
+    --border: #e2e4e9;
     --text: #111827;
     --text-muted: #6b7280;
-    --success: #059669;
+    --gray-bg: #f3f4f6;
     --danger: #dc2626;
-    --shadow: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.04);
-    --shadow-md: 0 10px 25px -5px rgba(0,0,0,.08), 0 4px 6px -4px rgba(0,0,0,.05);
-    --shadow-lg: 0 20px 40px -12px rgba(17,24,39,.18);
+    --radius: 10px;
+    --radius-sm: 6px;
+    --shadow: 0 1px 2px rgba(17,24,39,.05);
+    --shadow-hover: 0 4px 10px rgba(17,24,39,.08);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { min-height: 100%; font-family: 'Inter', 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); }
@@ -32,111 +31,93 @@
   /* ---------- Header ---------- */
   header {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 18px clamp(20px, 4vw, 48px);
-    background: linear-gradient(120deg, var(--sidebar-bg) 0%, var(--sidebar-bg-2) 100%);
-    color: #fff;
-    border-bottom: 1px solid rgba(129,140,248,.18);
-    position: relative; z-index: 2;
+    padding: 14px clamp(20px, 4vw, 44px);
+    background: var(--sidebar-bg); color: #fff;
+    border-bottom: 1px solid rgba(255,255,255,.08);
   }
-  .brand { display: flex; align-items: center; gap: 13px; }
-  .brand img { width: 40px; height: 40px; object-fit: contain; border-radius: 11px; background: rgba(255,255,255,.08); padding: 6px; box-shadow: inset 0 0 0 1px rgba(255,255,255,.12); }
-  .brand strong { font-size: 17px; letter-spacing: .1em; font-weight: 800; }
-  .brand span { display: block; font-size: 10px; color: var(--primary-2); text-transform: uppercase; letter-spacing: .16em; font-weight: 700; }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .brand img { width: 34px; height: 34px; object-fit: contain; border-radius: 8px; background: rgba(255,255,255,.08); padding: 5px; }
+  .brand strong { font-size: 15px; letter-spacing: .04em; font-weight: 700; }
+  .brand span { display: block; font-size: 10px; color: rgba(255,255,255,.45); text-transform: uppercase; letter-spacing: .1em; font-weight: 600; margin-top: 1px; }
 
-  .session { display: flex; align-items: center; gap: 16px; }
+  .session { display: flex; align-items: center; gap: 14px; }
   .session .avatar {
-    width: 38px; height: 38px; border-radius: 50%;
-    background: linear-gradient(135deg, var(--primary-2), var(--primary));
-    color: #fff; display: flex; align-items: center; justify-content: center;
-    font-weight: 800; font-size: 13px; flex-shrink: 0;
-    box-shadow: 0 0 0 2px rgba(255,255,255,.14);
+    width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,.1); color: #fff;
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; flex-shrink: 0;
+    border: 1px solid rgba(255,255,255,.15);
   }
-  .session .who { display: flex; flex-direction: column; gap: 2px; text-align: right; }
-  .session .who strong { font-size: 13px; font-weight: 700; }
-  .session .who span { font-size: 10.5px; color: rgba(255,255,255,.5); text-transform: uppercase; letter-spacing: .06em; font-weight: 600; }
-  .logout-btn {
-    background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.16); color: #fff;
-    padding: 9px 16px; border-radius: 9px; font-size: 12.5px; font-weight: 700; cursor: pointer; transition: .2s ease;
-  }
-  .logout-btn:hover { background: rgba(239,68,68,.18); border-color: rgba(239,68,68,.45); }
+  .session .who { display: flex; flex-direction: column; gap: 1px; text-align: right; }
+  .session .who strong { font-size: 12.5px; font-weight: 600; }
+  .session .who span { font-size: 10.5px; color: rgba(255,255,255,.45); }
 
-  /* ---------- Hero ---------- */
-  .hero {
-    background: linear-gradient(180deg, var(--sidebar-bg) 0%, var(--sidebar-bg-2) 55%, var(--bg) 100%);
-    padding: clamp(40px, 7vh, 72px) 20px clamp(64px, 9vh, 96px);
-    position: relative; overflow: hidden;
+  /* ---------- Buttons (mismo sistema que el resto de los paneles) ---------- */
+  .btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 8px 15px; border-radius: var(--radius-sm);
+    font-size: 12.5px; font-weight: 600; cursor: pointer;
+    border: 1px solid transparent; transition: background .15s, border-color .15s, color .15s;
+    font-family: inherit; white-space: nowrap;
   }
-  .hero::before {
-    content: '';
-    position: absolute; inset: 0;
-    background:
-      radial-gradient(560px 280px at 18% 0%, rgba(129,140,248,.25), transparent 60%),
-      radial-gradient(480px 260px at 85% 10%, rgba(79,70,229,.22), transparent 60%);
-    pointer-events: none;
+  .btn-outline-light { background: transparent; color: rgba(255,255,255,.85); border-color: rgba(255,255,255,.22); }
+  .btn-outline-light:hover { background: rgba(220,38,38,.14); border-color: rgba(220,38,38,.4); color: #fca5a5; }
+
+  /* ---------- Page header ---------- */
+  .page-head {
+    background: var(--card-bg); border-bottom: 1px solid var(--border);
+    padding: clamp(26px, 4vh, 38px) 20px;
   }
-  .intro { position: relative; text-align: center; max-width: 620px; margin: 0 auto; }
-  .intro .eyebrow {
-    display: inline-flex; align-items: center; gap: 8px; padding: 7px 15px; border-radius: 999px;
-    background: rgba(129,140,248,.16); color: #c7d2fe; font-size: 11.5px; font-weight: 700;
-    letter-spacing: .08em; text-transform: uppercase; margin-bottom: 18px;
-    border: 1px solid rgba(129,140,248,.28);
+  .page-head .inner { max-width: 1040px; margin: 0 auto; }
+  .page-head .tag {
+    display: inline-block; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em;
+    color: var(--text-muted); background: var(--gray-bg); border: 1px solid var(--border);
+    padding: 4px 10px; border-radius: 4px; margin-bottom: 12px;
   }
-  .intro .eyebrow::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #34d399; box-shadow: 0 0 0 3px rgba(52,211,153,.25); }
-  .intro h1 { font-size: clamp(26px, 3.4vw, 36px); font-weight: 800; letter-spacing: -.02em; margin-bottom: 10px; color: #fff; }
-  .intro p { color: rgba(255,255,255,.62); font-size: 14.5px; line-height: 1.6; }
+  .page-head h1 { font-size: 22px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 4px; }
+  .page-head p { color: var(--text-muted); font-size: 13.5px; }
 
   /* ---------- Modules grid ---------- */
-  main { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 0 20px 64px; margin-top: clamp(-52px, -6vh, -40px); position: relative; z-index: 1; }
+  main { flex: 1; padding: clamp(28px, 4vh, 40px) 20px 60px; }
   .modules {
-    width: 100%; max-width: 1000px; display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(225px, 1fr)); gap: 20px;
+    width: 100%; max-width: 1040px; margin: 0 auto; display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px;
   }
   .module-card {
     --accent: var(--primary);
     --accent-light: var(--primary-light);
-    background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px;
-    padding: 26px 22px 22px; box-shadow: var(--shadow-lg); text-align: left; cursor: pointer;
-    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
-    display: flex; flex-direction: column; gap: 12px; font: inherit; color: inherit;
-    position: relative; overflow: hidden;
+    background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius);
+    border-left: 4px solid var(--accent);
+    padding: 20px 20px 18px; box-shadow: var(--shadow); text-align: left; cursor: pointer;
+    transition: box-shadow .15s ease, border-color .15s ease;
+    display: flex; flex-direction: column; gap: 10px; font: inherit; color: inherit;
   }
-  .module-card::before {
-    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
-    background: var(--accent); transform: scaleX(0); transform-origin: left;
-    transition: transform .2s ease;
-  }
-  .module-card:not(:disabled):hover { transform: translateY(-4px); box-shadow: 0 24px 44px -14px rgba(17,24,39,.22); border-color: transparent; }
-  .module-card:not(:disabled):hover::before { transform: scaleX(1); }
-  .module-card:disabled { cursor: not-allowed; opacity: .5; box-shadow: var(--shadow); }
+  .module-card:not(:disabled):hover { box-shadow: var(--shadow-hover); border-color: var(--border); border-left-color: var(--accent); }
+  .module-card:disabled { cursor: not-allowed; opacity: .55; border-left-color: var(--border); }
 
-  .module-card__top { display: flex; align-items: flex-start; justify-content: space-between; }
+  .module-card__top { display: flex; align-items: center; gap: 12px; }
   .module-icon {
-    width: 48px; height: 48px; border-radius: 13px;
+    width: 38px; height: 38px; border-radius: var(--radius-sm);
     background: var(--accent-light); color: var(--accent);
-    display: flex; align-items: center; justify-content: center; font-size: 19px; font-weight: 800;
-    letter-spacing: -.01em;
+    display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 800;
+    letter-spacing: -.01em; flex-shrink: 0;
   }
-  .module-card__arrow {
-    width: 30px; height: 30px; border-radius: 50%; background: var(--bg); color: var(--text-muted);
-    display: flex; align-items: center; justify-content: center; font-size: 15px;
-    opacity: 0; transform: translateX(-4px); transition: .18s ease;
-  }
-  .module-card:not(:disabled):hover .module-card__arrow { opacity: 1; transform: translateX(0); background: var(--accent); color: #fff; }
-
-  .module-card h3 { font-size: 17px; font-weight: 800; letter-spacing: -.01em; }
-  .module-card p { font-size: 12.5px; color: var(--text-muted); line-height: 1.55; }
+  .module-card h3 { font-size: 15px; font-weight: 700; }
+  .module-card p { font-size: 12px; color: var(--text-muted); line-height: 1.55; }
   .module-card .soon {
-    align-self: flex-start; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em;
-    color: var(--text-muted); background: var(--bg); padding: 4px 9px; border-radius: 999px;
+    align-self: flex-start; font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
+    color: var(--text-muted); background: var(--gray-bg); padding: 3px 8px; border-radius: 4px;
+    border: 1px solid var(--border);
+  }
+  .module-card__enter {
+    margin-top: 2px; font-size: 11.5px; font-weight: 600; color: var(--accent);
+    display: flex; align-items: center; gap: 5px;
   }
 
-  .empty-state, .loading { text-align: center; color: rgba(255,255,255,.7); padding: 40px 20px; position: relative; }
-  .loading { color: rgba(255,255,255,.55); font-size: 13.5px; }
-  .empty-state strong { color: #fff; }
+  .empty-state, .loading { text-align: center; color: var(--text-muted); padding: 40px 20px; max-width: 1040px; margin: 0 auto; }
+  .empty-state strong { color: var(--text); }
 
   footer {
-    text-align: center; padding: 18px 20px 26px; font-size: 11px; color: var(--text-muted);
-    letter-spacing: .03em;
+    text-align: center; padding: 16px 20px 22px; font-size: 11px; color: var(--text-muted);
+    border-top: 1px solid var(--border); background: var(--card-bg);
   }
 
   @media (max-width: 560px) {
@@ -159,13 +140,13 @@
         <span id="session-role">—</span>
       </div>
       <div class="avatar" id="session-avatar">–</div>
-      <button class="logout-btn" id="logout-btn">Cerrar sesión</button>
+      <button class="btn btn-outline-light" id="logout-btn">Cerrar sesión</button>
     </div>
   </header>
 
-  <div class="hero">
-    <div class="intro">
-      <div class="eyebrow">Sesión verificada</div>
+  <div class="page-head">
+    <div class="inner">
+      <span class="tag">Sesión verificada</span>
       <h1>Selecciona una plataforma</h1>
       <p>Solo se muestran los módulos para los que tu cuenta tiene autorización.</p>
     </div>
@@ -204,14 +185,14 @@ const MODULE_TARGETS = {
 const MODULE_HANDOFF_PATH = { TI: '/', ADG: '/', RRHH: '/login.html', SOPORTE: '/login.html', DST: '/login.html' };
 
 /* accent/accentLight solo cambian el color de acento de cada tarjeta
-   (borde superior, ícono, flecha) — nada funcional. */
+   (borde izquierdo, ícono) — nada funcional. */
 const MODULE_META = {
-  TI:        { label: 'TI',         desc: 'Proyectos técnicos, tecnologías y cronogramas.', letter: 'TI', accent: '#2563eb', accentLight: '#dbeafe' },
-  ADG:       { label: 'ADG',        desc: 'Aprobación y administración de proyectos.',       letter: 'AD', accent: '#7c3aed', accentLight: '#ede9fe' },
-  RRHH:      { label: 'RR. HH.',    desc: 'Personal, contratos, nómina y reclutamiento.',    letter: 'RH', accent: '#059669', accentLight: '#d1fae5' },
-  SOPORTE:   { label: 'Soporte',    desc: 'Mesa de ayuda y soporte técnico.',                letter: 'SO', accent: '#d97706', accentLight: '#fef3c7' },
+  TI:        { label: 'TI',         desc: 'Proyectos técnicos, tecnologías y cronogramas.', letter: 'TI', accent: '#1d4ed8', accentLight: '#dbeafe' },
+  ADG:       { label: 'ADG',        desc: 'Aprobación y administración de proyectos.',       letter: 'AD', accent: '#6d28d9', accentLight: '#ede9fe' },
+  RRHH:      { label: 'RR. HH.',    desc: 'Personal, contratos, nómina y reclutamiento.',    letter: 'RH', accent: '#047857', accentLight: '#d1fae5' },
+  SOPORTE:   { label: 'Soporte',    desc: 'Mesa de ayuda y soporte técnico.',                letter: 'SO', accent: '#b45309', accentLight: '#fef3c7' },
   COMERCIAL: { label: 'Comercial',  desc: 'Próximamente.',                                    letter: 'CO', accent: '#6b7280', accentLight: '#f3f4f6' },
-  DST:       { label: 'DST',        desc: 'Seguridad, accesos y auditoría del ecosistema.',  letter: 'DS', accent: '#dc2626', accentLight: '#fee2e2' },
+  DST:       { label: 'DST',        desc: 'Seguridad, accesos y auditoría del ecosistema.',  letter: 'DS', accent: '#b91c1c', accentLight: '#fee2e2' },
 };
 
 function goToLogin() { window.location.href = 'login.html'; }
@@ -253,11 +234,10 @@ function renderModules(authorizedModules) {
       style="--accent:${meta.accent};--accent-light:${meta.accentLight}">
       <div class="module-card__top">
         <div class="module-icon">${meta.letter}</div>
-        ${hasTarget ? '<div class="module-card__arrow">→</div>' : ''}
+        <h3>${meta.label}</h3>
       </div>
-      <h3>${meta.label}</h3>
       <p>${meta.desc}</p>
-      ${hasTarget ? '' : '<span class="soon">Próximamente</span>'}
+      ${hasTarget ? '<span class="module-card__enter">Entrar →</span>' : '<span class="soon">Próximamente</span>'}
     </button>`;
   }).join('');
 
