@@ -131,13 +131,14 @@ const MODULE_TARGETS = {
   ADG:      IS_LOCAL ? 'http://localhost:5512' : 'https://qubira-adg.vercel.app',
   RRHH:     IS_LOCAL ? 'http://localhost:5513' : 'https://qubira-rrhh.vercel.app',
   SOPORTE:  IS_LOCAL ? 'http://localhost:5514' : 'https://qubira-soporte.vercel.app',
+  DST:      IS_LOCAL ? 'http://localhost:5516' : 'https://qubira-dst.vercel.app',
 };
 
 /* TI/ADG son SPA — el traspaso lo recibe app.js en cualquier ruta,
-   incluida la raíz. RRHH/Soporte son un index.html estático con un
+   incluida la raíz. RRHH/Soporte/DST son un index.html estático con un
    login.html aparte que recibe el traspaso — mandarlo a la raíz haría
    que el gate de sesión de index.html lo descarte antes de leerlo. */
-const MODULE_HANDOFF_PATH = { TI: '/', ADG: '/', RRHH: '/login.html', SOPORTE: '/login.html' };
+const MODULE_HANDOFF_PATH = { TI: '/', ADG: '/', RRHH: '/login.html', SOPORTE: '/login.html', DST: '/login.html' };
 
 const MODULE_META = {
   TI:        { label: 'TI',         desc: 'Proyectos técnicos, tecnologías y cronogramas.', letter: 'TI' },
@@ -145,6 +146,7 @@ const MODULE_META = {
   RRHH:      { label: 'RR. HH.',    desc: 'Personal, contratos, nómina y reclutamiento.',    letter: 'RH' },
   SOPORTE:   { label: 'Soporte',    desc: 'Mesa de ayuda y soporte técnico.',                letter: 'SO' },
   COMERCIAL: { label: 'Comercial',  desc: 'Próximamente.',                                    letter: 'CO' },
+  DST:       { label: 'DST',        desc: 'Seguridad, accesos y auditoría del ecosistema.',  letter: 'DS' },
 };
 
 function goToLogin() { window.location.href = 'login.html'; }
