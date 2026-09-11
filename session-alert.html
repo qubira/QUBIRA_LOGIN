@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QUBIRA | Sesión reemplazada</title>
+<link rel="icon" href="https://raw.githubusercontent.com/qubira/IMAGENES/main/logo2.png" type="image/png">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #4f46e5; --primary-2: #818cf8; --primary-light: #eef2ff;
+    --bg: #f3f4f6; --card-bg: #ffffff; --border: #e5e7eb;
+    --text: #111827; --text-muted: #6b7280;
+    --success: #059669; --success-bg: #d1fae5;
+    --danger: #dc2626; --danger-bg: #fee2e2;
+    --warning: #b45309; --warning-bg: #fef3c7;
+    --shadow-md: 0 10px 25px -5px rgba(0,0,0,.08), 0 4px 6px -4px rgba(0,0,0,.05);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { min-height: 100%; font-family: 'Inter', 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); }
+  body { display: grid; place-items: center; min-height: 100dvh; padding: 20px; }
+
+  .card { width: min(460px, 100%); background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; box-shadow: var(--shadow-md); padding: clamp(26px, 4vw, 36px); }
+  .brand { display: flex; align-items: center; gap: 10px; margin-bottom: 22px; }
+  .brand img { width: 32px; height: 32px; object-fit: contain; border-radius: 8px; background: #111827; padding: 4px; }
+  .brand strong { font-size: 14px; letter-spacing: .08em; font-weight: 800; }
+
+  .icon-badge { width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 16px; background: var(--warning-bg); }
+  .icon-badge svg { width: 26px; height: 26px; stroke: var(--warning); }
+  .icon-badge.success { background: var(--success-bg); }
+  .icon-badge.success svg { stroke: var(--success); }
+  .icon-badge.danger { background: var(--danger-bg); }
+  .icon-badge.danger svg { stroke: var(--danger); }
+
+  h1 { font-size: 20px; font-weight: 800; margin-bottom: 8px; letter-spacing: -.01em; }
+  p { font-size: 13.5px; line-height: 1.7; color: var(--text-muted); }
+  p strong { color: var(--text); }
+  .ip-chip { display: inline-block; margin-top: 8px; padding: 5px 11px; border-radius: 999px; background: var(--bg); border: 1px solid var(--border); font-size: 12px; font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; }
+
+  .actions { display: flex; flex-direction: column; gap: 10px; margin-top: 24px; }
+  .btn { height: 48px; border-radius: 12px; border: none; font-size: 13.5px; font-weight: 700; cursor: pointer; font-family: inherit; transition: .2s ease; }
+  .btn-primary { background: linear-gradient(135deg, var(--primary), var(--primary-2)); color: #fff; box-shadow: 0 12px 22px rgba(79,70,229,.24); }
+  .btn-primary:hover { transform: translateY(-1px); }
+  .btn-danger { background: #fff; color: var(--danger); border: 1px solid var(--danger-bg); }
+  .btn-danger:hover { background: var(--danger-bg); }
+  .btn-secondary { background: #fff; color: var(--text-muted); border: 1px solid var(--border); }
+  .btn-secondary:hover { background: var(--bg); }
+  .btn:disabled { opacity: .55; cursor: not-allowed; }
+
+  .face-wrap { display: none; margin-top: 20px; }
+  .face-wrap.active { display: block; }
+  .face-video-wrap { position: relative; width: 180px; height: 180px; margin: 0 auto 14px; border-radius: 50%; overflow: hidden; background: #111827; }
+  .face-video-wrap video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+  .face-ring { position: absolute; inset: 0; border-radius: 50%; border: 3px solid var(--border); transition: border-color .25s ease; }
+  .face-ring.scanning { border-color: var(--primary-2); }
+  .face-ring.detected { border-color: var(--warning); }
+  .face-ring.success { border-color: var(--success); }
+  .face-ring.error { border-color: var(--danger); }
+  .face-status { text-align: center; font-size: 13px; font-weight: 600; color: var(--text-muted); min-height: 18px; margin-bottom: 14px; }
+
+  .message { margin-top: 16px; font-size: 12.5px; font-weight: 600; text-align: center; min-height: 16px; }
+  .message.error { color: var(--danger); }
+  .message.success { color: var(--success); }
+
+  .foot-note { margin-top: 20px; color: var(--text-muted); font-size: 11px; line-height: 1.6; text-align: center; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="brand">
+      <img src="https://raw.githubusercontent.com/qubira/IMAGENES/main/logo2.png" alt="QUBIRA">
+      <strong>QUBIRA · Seguridad</strong>
+    </div>
+
+    <div id="view-alert">
+      <div class="icon-badge">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"></path><path d="M12 17h.01"></path><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path></svg>
+      </div>
+      <h1>Tu cuenta inició sesión en otro dispositivo</h1>
+      <p>Por seguridad, cerramos la sesión que tenías abierta acá. El nuevo inicio de sesión vino desde esta dirección IP:</p>
+      <span class="ip-chip" id="ip-display">—</span>
+      <p style="margin-top:14px">Si fuiste tú entrando desde otro celular o computadora, no tienes que hacer nada. Si no reconoces este acceso, puedes bloquearlo verificando que eres el titular de la cuenta con tu rostro.</p>
+
+      <div class="actions">
+        <button class="btn btn-secondary" id="btn-was-me">Fui yo, ir a iniciar sesión</button>
+        <button class="btn btn-danger" id="btn-not-me">No fui yo — bloquear este acceso</button>
+      </div>
+
+      <div class="face-wrap" id="face-wrap">
+        <div class="face-video-wrap">
+          <video id="face-video" autoplay muted playsinline></video>
+          <div class="face-ring" id="face-ring"></div>
+        </div>
+        <p class="face-status" id="face-status">Preparando la cámara...</p>
+        <div class="actions">
+          <button class="btn btn-secondary" id="btn-cancel-face">Cancelar</button>
+        </div>
+      </div>
+
+      <div class="message" id="message"></div>
+    </div>
+
+    <div id="view-success" style="display:none">
+      <div class="icon-badge success">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+      </div>
+      <h1>Acceso bloqueado</h1>
+      <p>Verificamos que eres el titular de la cuenta y bloqueamos esa dirección IP. El equipo de DST puede revisarlo en el módulo de Seguridad.</p>
+      <div class="actions">
+        <button class="btn btn-primary" id="btn-goto-login-success">Ir a iniciar sesión</button>
+      </div>
+    </div>
+
+    <p class="foot-note">Este aviso es exclusivamente de seguridad de la cuenta — no reemplaza tu inicio de sesión habitual.</p>
+  </div>
+
+<script>
+'use strict';
+
+const QR_API_BASE = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+  ? 'http://localhost:4000'
+  : 'https://api-qubira.onrender.com';
+
+const params = new URLSearchParams(location.search);
+const username = params.get('username') || '';
+const replacingIp = params.get('ip') || '';
+
+document.getElementById('ip-display').textContent = replacingIp || 'desconocida';
+
+function goToLogin() { window.location.href = 'login.html'; }
+
+const messageEl = document.getElementById('message');
+function setMessage(text, type) {
+  messageEl.textContent = text || '';
+  messageEl.className = 'message' + (type ? ' ' + type : '');
+}
+
+document.getElementById('btn-was-me').addEventListener('click', goToLogin);
+document.getElementById('btn-goto-login-success').addEventListener('click', goToLogin);
+
+if (!username || !replacingIp) {
+  // Alguien llegó a esta página directo, sin los datos del aviso real —
+  // no tiene sentido ofrecer el flujo de bloqueo sin saber a quién/qué IP.
+  setMessage('Este enlace no tiene la información necesaria. Ve a iniciar sesión.', 'error');
+  document.getElementById('btn-not-me').disabled = true;
+}
+
+/* ============================================================
+   Reconocimiento facial — mismo patrón que login.html: face-api.js
+   se carga recién al abrir este flujo, nunca de entrada.
+   ============================================================ */
+let faceApiScriptPromise = null;
+function loadFaceApiScript() {
+  if (!faceApiScriptPromise) {
+    faceApiScriptPromise = new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = 'vendor/face-api/face-api.min.js';
+      s.onload = () => resolve();
+      s.onerror = () => reject(new Error('No se pudo cargar el módulo de reconocimiento facial'));
+      document.head.appendChild(s);
+    });
+  }
+  return faceApiScriptPromise;
+}
+let faceModelsPromise = null;
+function loadFaceModels() {
+  if (!faceModelsPromise) {
+    faceModelsPromise = loadFaceApiScript().then(() => Promise.all([
+      faceapi.nets.tinyFaceDetector.loadFromUri('vendor/face-api/models'),
+      faceapi.nets.faceLandmark68Net.loadFromUri('vendor/face-api/models'),
+      faceapi.nets.faceRecognitionNet.loadFromUri('vendor/face-api/models'),
+    ]));
+  }
+  return faceModelsPromise;
+}
+
+const faceWrap = document.getElementById('face-wrap');
+const faceVideo = document.getElementById('face-video');
+const faceRing = document.getElementById('face-ring');
+const faceStatusEl = document.getElementById('face-status');
+const btnNotMe = document.getElementById('btn-not-me');
+const btnCancelFace = document.getElementById('btn-cancel-face');
+
+let faceStream = null;
+let faceLoopActive = false;
+let submitting = false;
+let attempts = 0;
+const MAX_ATTEMPTS = 5;
+
+function setFaceStatus(text, state) {
+  faceStatusEl.textContent = text;
+  faceRing.className = 'face-ring' + (state ? ' ' + state : '');
+}
+
+function stopFaceStream() {
+  if (faceStream) { faceStream.getTracks().forEach(t => t.stop()); faceStream = null; }
+  faceVideo.srcObject = null;
+}
+
+btnNotMe.addEventListener('click', async () => {
+  faceWrap.classList.add('active');
+  btnNotMe.disabled = true;
+  setMessage('');
+  setFaceStatus('Cargando reconocimiento facial...', null);
+  try {
+    await loadFaceModels();
+  } catch (err) {
+    setFaceStatus(err.message, 'error');
+    return;
+  }
+  try {
+    faceStream = await navigator.mediaDevices.getUserMedia({ video: { width: 400, height: 400, facingMode: 'user' }, audio: false });
+  } catch (err) {
+    setFaceStatus('No se pudo acceder a la cámara. Revisa los permisos del navegador.', 'error');
+    return;
+  }
+  faceVideo.srcObject = faceStream;
+  try { await faceVideo.play(); } catch (_) {}
+  faceLoopActive = true;
+  setFaceStatus('Buscando tu rostro...', 'scanning');
+  faceLoop();
+});
+
+btnCancelFace.addEventListener('click', () => {
+  faceLoopActive = false;
+  stopFaceStream();
+  faceWrap.classList.remove('active');
+  btnNotMe.disabled = false;
+  setMessage('');
+});
+
+async function faceLoop() {
+  if (!faceLoopActive || submitting) return;
+  try {
+    const options = new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.5 });
+    const result = await faceapi.detectSingleFace(faceVideo, options).withFaceLandmarks().withFaceDescriptor();
+    if (result && faceLoopActive) {
+      setFaceStatus('Rostro detectado, verificando...', 'detected');
+      submitting = true;
+      const descriptor = Array.from(result.descriptor);
+
+      const res = await fetch(`${QR_API_BASE}/api/auth/security/block-replacing-ip`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, descriptor, ip: replacingIp }),
+      });
+      const data = await res.json().catch(() => ({}));
+
+      if (data.ok) {
+        faceLoopActive = false;
+        stopFaceStream();
+        document.getElementById('view-alert').style.display = 'none';
+        document.getElementById('view-success').style.display = 'block';
+        return;
+      }
+
+      /* Errores permanentes (no tiene rostro registrado, o esta IP quedó
+         bloqueada por intentos) — no tiene sentido seguir reintentando
+         con el mismo resultado cada vez. */
+      if (res.status === 409 || res.status === 403) {
+        faceLoopActive = false;
+        stopFaceStream();
+        setFaceStatus(data.error || 'No se pudo continuar.', 'error');
+        return;
+      }
+
+      attempts += 1;
+      if (attempts >= MAX_ATTEMPTS) {
+        faceLoopActive = false;
+        stopFaceStream();
+        setFaceStatus('No pudimos verificar tu identidad tras varios intentos. Contacta a Soporte.', 'error');
+        return;
+      }
+
+      submitting = false;
+      setFaceStatus((data.error || 'No coincide') + ' — intentando de nuevo...', 'error');
+    } else if (faceLoopActive) {
+      setFaceStatus('Buscando tu rostro...', 'scanning');
+    }
+  } catch (err) {
+    console.error('[SESSION ALERT] Error en el ciclo de detección:', err);
+    submitting = false;
+  }
+  if (faceLoopActive) setTimeout(faceLoop, 1300);
+}
+</script>
+</body>
+</html>
