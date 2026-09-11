@@ -121,6 +121,29 @@
 
   .foot-note { margin-top: 16px; color: var(--text-muted); font-size: 11.5px; line-height: 1.7; text-align: center; }
 
+  .login-tabs { display: flex; gap: 6px; padding: 4px; background: #f3f4f6; border-radius: 12px; margin-bottom: 22px; }
+  .login-tab {
+    flex: 1; border: none; background: transparent; border-radius: 9px; padding: 10px 8px;
+    font-size: 12.5px; font-weight: 700; color: var(--text-muted); cursor: pointer; transition: .2s ease;
+    font-family: inherit;
+  }
+  .login-tab:hover { color: var(--text); }
+  .login-tab.tab-active { background: #fff; color: var(--primary); box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+
+  .face-video-wrap { position: relative; width: 240px; height: 240px; margin: 0 auto 18px; border-radius: 50%; overflow: hidden; background: #111827; }
+  .face-video-wrap video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+  .face-video-ring { position: absolute; inset: 0; border-radius: 50%; border: 3px solid var(--border); transition: border-color .3s ease, box-shadow .3s ease; pointer-events: none; }
+  .face-video-ring.scanning { border-color: var(--primary-2); box-shadow: 0 0 0 4px rgba(129,140,248,.18); animation: facePulse 1.4s ease-in-out infinite; }
+  .face-video-ring.detected { border-color: #f59e0b; box-shadow: 0 0 0 4px rgba(245,158,11,.18); }
+  .face-video-ring.success { border-color: var(--success); box-shadow: 0 0 0 4px rgba(5,150,105,.18); }
+  .face-video-ring.error { border-color: var(--danger); box-shadow: 0 0 0 4px rgba(220,38,38,.18); }
+  @keyframes facePulse { 0%,100%{opacity:1} 50%{opacity:.55} }
+
+  .face-status { text-align: center; font-size: 13px; font-weight: 600; color: var(--text-muted); min-height: 18px; margin-bottom: 18px; }
+  .face-status--success { color: var(--success); }
+  .face-status--error { color: var(--danger); }
+  .face-status--detected { color: #b45309; }
+
   .message { min-height: 18px; margin-top: 12px; text-align: center; font-size: 12.5px; font-weight: 600; }
   .message.success { color: var(--success); }
   .message.error { color: var(--danger); animation: shake .35s ease; }
@@ -199,29 +222,45 @@
         <h2>Ingresar</h2>
         <p>Accede con tu cuenta corporativa para continuar.</p>
 
-        <form id="loginForm" novalidate autocomplete="off">
-          <div class="field">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5Zm0 2c-3.87 0-7 2.24-7 5v1h14v-1c0-2.76-3.13-5-7-5Z"/>
-            </svg>
-            <input type="text" id="user" placeholder="Usuario corporativo" autocomplete="off">
-          </div>
+        <div class="login-tabs">
+          <button type="button" class="login-tab tab-active" id="tab-password">Usuario y contraseña</button>
+          <button type="button" class="login-tab" id="tab-face">Reconocimiento facial</button>
+        </div>
 
-          <div class="field">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M17 8h-1V6a4 4 0 1 0-8 0v2H7a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2Zm-6 8.73V18h2v-1.27a2 2 0 1 0-2 0ZM10 8V6a2 2 0 1 1 4 0v2h-4Z"/>
-            </svg>
-            <input type="password" id="password" placeholder="Contraseña" autocomplete="new-password">
-            <button type="button" class="toggle" id="togglePassword">VER</button>
-          </div>
+        <div id="password-panel">
+          <form id="loginForm" novalidate autocomplete="off">
+            <div class="field">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5Zm0 2c-3.87 0-7 2.24-7 5v1h14v-1c0-2.76-3.13-5-7-5Z"/>
+              </svg>
+              <input type="text" id="user" placeholder="Usuario corporativo" autocomplete="off">
+            </div>
 
-          <div class="actions">
-            <div class="secure-badge">Sesión protegida</div>
-          </div>
+            <div class="field">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M17 8h-1V6a4 4 0 1 0-8 0v2H7a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2Zm-6 8.73V18h2v-1.27a2 2 0 1 0-2 0ZM10 8V6a2 2 0 1 1 4 0v2h-4Z"/>
+              </svg>
+              <input type="password" id="password" placeholder="Contraseña" autocomplete="new-password">
+              <button type="button" class="toggle" id="togglePassword">VER</button>
+            </div>
 
-          <button class="submit" type="submit" id="submitBtn">Ingresar</button>
-          <div id="message" class="message"></div>
-        </form>
+            <div class="actions">
+              <div class="secure-badge">Sesión protegida</div>
+            </div>
+
+            <button class="submit" type="submit" id="submitBtn">Ingresar</button>
+            <div id="message" class="message"></div>
+          </form>
+        </div>
+
+        <div id="face-panel" style="display:none">
+          <div class="face-video-wrap" id="face-video-wrap">
+            <video id="face-video" autoplay muted playsinline></video>
+            <div class="face-video-ring" id="face-video-ring"></div>
+          </div>
+          <p class="face-status face-status--idle" id="face-status">Preparando la cámara...</p>
+          <button class="submit" type="button" id="faceCancelBtn" style="background:#fff;color:var(--text);border:1px solid var(--border);box-shadow:none;">Usar usuario y contraseña</button>
+        </div>
 
         <div class="foot-note">
           Acceso exclusivo para personal autorizado de Qubira.
@@ -321,6 +360,167 @@ function setLoading(loading) {
   userInput.disabled = loading;
   passInput.disabled = loading;
   submitBtn.textContent = loading ? 'Verificando...' : 'Ingresar';
+}
+
+/* ============================================================
+   Reconocimiento facial — carga face-api.js (y sus modelos) recién
+   cuando el usuario abre esta pestaña, para no pagar el costo de la
+   descarga (~7MB) en cada visita a /login.html. Todo el cómputo
+   (detección + descriptor de 128 dimensiones) corre en el navegador;
+   solo el vector final viaja al backend, nunca una foto.
+   ============================================================ */
+const tabPassword  = document.getElementById('tab-password');
+const tabFace       = document.getElementById('tab-face');
+const passwordPanel = document.getElementById('password-panel');
+const facePanel      = document.getElementById('face-panel');
+const faceVideo       = document.getElementById('face-video');
+const faceRing         = document.getElementById('face-video-ring');
+const faceStatusEl      = document.getElementById('face-status');
+const faceCancelBtn      = document.getElementById('faceCancelBtn');
+
+let faceApiScriptPromise = null;
+function loadFaceApiScript() {
+  if (!faceApiScriptPromise) {
+    faceApiScriptPromise = new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = 'vendor/face-api/face-api.min.js';
+      s.onload = () => resolve();
+      s.onerror = () => reject(new Error('No se pudo cargar el módulo de reconocimiento facial'));
+      document.head.appendChild(s);
+    });
+  }
+  return faceApiScriptPromise;
+}
+
+let faceModelsPromise = null;
+function loadFaceModels() {
+  if (!faceModelsPromise) {
+    faceModelsPromise = loadFaceApiScript().then(() => Promise.all([
+      faceapi.nets.tinyFaceDetector.loadFromUri('vendor/face-api/models'),
+      faceapi.nets.faceLandmark68Net.loadFromUri('vendor/face-api/models'),
+      faceapi.nets.faceRecognitionNet.loadFromUri('vendor/face-api/models'),
+    ]));
+  }
+  return faceModelsPromise;
+}
+
+let faceStream = null;
+let faceLoopActive = false;
+let faceAttempts = 0;
+const FACE_HINT_AFTER_ATTEMPTS = 8;
+const FACE_RETRY_MS = 1100;
+
+function setFaceStatus(text, state) {
+  faceStatusEl.textContent = text;
+  faceStatusEl.className = 'face-status face-status--' + (state || 'idle');
+  faceRing.className = 'face-video-ring' + (state && state !== 'idle' ? ' ' + state : '');
+}
+
+function stopFaceStream() {
+  if (faceStream) { faceStream.getTracks().forEach(t => t.stop()); faceStream = null; }
+  faceVideo.srcObject = null;
+}
+
+tabPassword.addEventListener('click', showPasswordPanel);
+tabFace.addEventListener('click', () => { showFacePanel(); startFaceLogin(); });
+faceCancelBtn.addEventListener('click', showPasswordPanel);
+
+function showFacePanel() {
+  passwordPanel.style.display = 'none';
+  facePanel.style.display = 'block';
+  tabPassword.classList.remove('tab-active');
+  tabFace.classList.add('tab-active');
+}
+
+function showPasswordPanel() {
+  faceLoopActive = false;
+  stopFaceStream();
+  facePanel.style.display = 'none';
+  passwordPanel.style.display = 'block';
+  tabFace.classList.remove('tab-active');
+  tabPassword.classList.add('tab-active');
+}
+
+async function startFaceLogin() {
+  setFaceStatus('Cargando reconocimiento facial...', 'idle');
+  try {
+    await loadFaceModels();
+  } catch (err) {
+    console.error('[FACE LOGIN] No se pudo cargar el modelo:', err);
+    setFaceStatus('No se pudo cargar el reconocimiento facial. Usa tu usuario y contraseña.', 'error');
+    return;
+  }
+
+  try {
+    faceStream = await navigator.mediaDevices.getUserMedia({ video: { width: 480, height: 480, facingMode: 'user' }, audio: false });
+  } catch (err) {
+    console.error('[FACE LOGIN] No se pudo acceder a la cámara:', err);
+    setFaceStatus('No se pudo acceder a la cámara. Revisa los permisos del navegador.', 'error');
+    return;
+  }
+
+  faceVideo.srcObject = faceStream;
+  try { await faceVideo.play(); } catch (_) { /* algunos navegadores ya la reproducen solos con autoplay */ }
+
+  faceLoopActive = true;
+  faceAttempts = 0;
+  setFaceStatus('Buscando tu rostro...', 'scanning');
+  faceLoop();
+}
+
+async function faceLoop() {
+  if (!faceLoopActive) return;
+
+  try {
+    const options = new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.5 });
+    const result = await faceapi.detectSingleFace(faceVideo, options).withFaceLandmarks().withFaceDescriptor();
+
+    if (result && faceLoopActive) {
+      setFaceStatus('Rostro detectado, verificando...', 'detected');
+      const descriptor = Array.from(result.descriptor);
+
+      const res = await fetch(`${QR_API_BASE}/api/auth/face/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ descriptor }),
+      });
+      const data = await res.json().catch(() => ({}));
+
+      if (!faceLoopActive) return; // el usuario canceló mientras esperábamos la respuesta
+
+      if (data.ok) {
+        faceLoopActive = false;
+        stopFaceStream();
+        localStorage.setItem('qubira_token', data.token);
+        localStorage.setItem('qubira_user', JSON.stringify(data.user));
+        setFaceStatus(`¡Bienvenido, ${data.user.nombre}! Redirigiendo...`, 'success');
+        setTimeout(goToModulo, 600);
+        return;
+      }
+
+      const blockingErrors = ['bloqueada', 'desactivada', 'suspendida'];
+      if (blockingErrors.some(k => (data.error || '').toLowerCase().includes(k))) {
+        faceLoopActive = false;
+        stopFaceStream();
+        setFaceStatus(data.error, 'error');
+        return;
+      }
+
+      faceAttempts += 1;
+      setFaceStatus(
+        faceAttempts >= FACE_HINT_AFTER_ATTEMPTS
+          ? 'No pudimos reconocerte. Verifica la luz o usa tu usuario y contraseña.'
+          : 'Rostro no reconocido, intentando de nuevo...',
+        'error'
+      );
+    } else if (faceLoopActive) {
+      setFaceStatus('Buscando tu rostro...', 'scanning');
+    }
+  } catch (err) {
+    console.error('[FACE LOGIN] Error en el ciclo de detección:', err);
+  }
+
+  if (faceLoopActive) setTimeout(faceLoop, FACE_RETRY_MS);
 }
 </script>
 </body>
