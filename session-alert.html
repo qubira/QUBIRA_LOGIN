@@ -185,7 +185,7 @@ let faceStream = null;
 let faceLoopActive = false;
 let submitting = false;
 let attempts = 0;
-const MAX_ATTEMPTS = 5;
+const MAX_ATTEMPTS = 8;
 
 function setFaceStatus(text, state) {
   faceStatusEl.textContent = text;
@@ -232,7 +232,7 @@ btnCancelFace.addEventListener('click', () => {
 async function faceLoop() {
   if (!faceLoopActive || submitting) return;
   try {
-    const options = new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.5 });
+    const options = new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.4 });
     const result = await faceapi.detectSingleFace(faceVideo, options).withFaceLandmarks().withFaceDescriptor();
     if (result && faceLoopActive) {
       setFaceStatus('Rostro detectado, verificando...', 'detected');
@@ -280,7 +280,7 @@ async function faceLoop() {
     console.error('[SESSION ALERT] Error en el ciclo de detección:', err);
     submitting = false;
   }
-  if (faceLoopActive) setTimeout(faceLoop, 1300);
+  if (faceLoopActive) setTimeout(faceLoop, 800);
 }
 </script>
 </body>
