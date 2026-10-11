@@ -36,11 +36,47 @@
   }
   header::after { content: none; }
   .header-accent { height: 3px; background: linear-gradient(90deg, var(--primary), #818cf8 45%, var(--primary)); }
-  .brand { display: flex; align-items: center; gap: 12px; color: inherit; text-decoration: none; transition: opacity .15s ease; }
-  .brand:hover { opacity: .82; }
+
+  .brand-wrap { position: relative; }
+  .brand {
+    display: flex; align-items: center; gap: 12px;
+    padding: 6px 16px 6px 7px; border-radius: 11px;
+    background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.1);
+    color: inherit; text-decoration: none; cursor: pointer;
+    transition: background .15s ease, border-color .15s ease, transform .15s ease;
+  }
+  .brand:hover, .brand:focus-visible { background: rgba(255,255,255,.14); border-color: rgba(255,255,255,.24); transform: translateY(-1px); }
   .brand img { width: 34px; height: 34px; object-fit: contain; border-radius: 8px; background: rgba(255,255,255,.08); padding: 5px; }
   .brand strong { font-size: 15px; letter-spacing: .04em; font-weight: 700; }
   .brand span { display: block; font-size: 10px; color: rgba(255,255,255,.45); text-transform: uppercase; letter-spacing: .1em; font-weight: 600; margin-top: 1px; }
+  .brand__go { margin-left: 2px; color: rgba(255,255,255,.4); display: flex; }
+
+  /* Vista previa en vivo del sitio público — un iframe real escalado
+     hacia abajo (lo renderiza a tamaño completo y lo achica con CSS,
+     truco estándar para "miniaturizar" una página sin un servicio de
+     capturas aparte) dentro de una tarjeta que aparece al pasar el
+     mouse o enfocar el botón con teclado. El iframe nunca recibe
+     clics (pointer-events:none): la tarjeta entera es un link propio
+     al mismo sitio. */
+  .brand-preview {
+    position: absolute; top: calc(100% + 10px); left: 0; width: 340px;
+    background: #fff; border-radius: 14px; border: 1px solid var(--border);
+    box-shadow: 0 24px 48px rgba(17,24,39,.32);
+    opacity: 0; visibility: hidden; transform: translateY(-8px);
+    transition: opacity .18s ease, transform .18s ease, visibility .18s;
+    z-index: 60; overflow: hidden; text-decoration: none; display: block;
+  }
+  .brand-wrap:hover .brand-preview,
+  .brand-wrap:focus-within .brand-preview { opacity: 1; visibility: visible; transform: translateY(0); }
+  .brand-preview__frame { display: block; width: 100%; height: 191px; overflow: hidden; position: relative; background: #0a0b0f; }
+  .brand-preview__frame iframe {
+    position: absolute; top: 0; left: 0; width: 1360px; height: 764px;
+    transform: scale(.25); transform-origin: top left; border: 0; pointer-events: none;
+  }
+  .brand-preview__caption {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 10px; font-size: 11.5px; font-weight: 700; color: var(--primary);
+  }
 
   .session { display: flex; align-items: center; gap: 14px; }
   .session .avatar {
@@ -184,18 +220,26 @@
   @media (max-width: 560px) {
     .session .who { display: none; }
     .page-head .inner { align-items: flex-start; }
+    .brand-preview { display: none; }
   }
 </style>
 </head>
 <body>
   <header>
-    <a class="brand" href="https://qubira.vercel.app/" target="_blank" rel="noopener noreferrer" title="Ir al sitio web de QUBIRA">
-      <img src="https://raw.githubusercontent.com/qubira/IMAGENES/main/logo2.png" alt="QUBIRA">
-      <div>
-        <strong>QUBIRA</strong>
-        <span>Selección de módulo</span>
-      </div>
-    </a>
+    <div class="brand-wrap" id="brand-wrap">
+      <a class="brand" href="https://qubira.vercel.app/" target="_blank" rel="noopener noreferrer" title="Ir al sitio web de QUBIRA">
+        <img src="https://raw.githubusercontent.com/qubira/IMAGENES/main/logo2.png" alt="QUBIRA">
+        <div>
+          <strong>QUBIRA</strong>
+          <span>Selección de módulo</span>
+        </div>
+        <svg class="brand__go" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+      </a>
+      <a class="brand-preview" id="brand-preview" href="https://qubira.vercel.app/" target="_blank" rel="noopener noreferrer" tabindex="-1">
+        <span class="brand-preview__frame"><iframe id="brand-preview-iframe" title="Vista previa de qubira.vercel.app" loading="lazy"></iframe></span>
+        <span class="brand-preview__caption">Ver el sitio web público →</span>
+      </a>
+    </div>
     <div class="session">
       <div class="who">
         <strong id="session-name">—</strong>
@@ -288,6 +332,23 @@ const MODULE_META = {
 const GROUP_ORDER = ['ops', 'security'];
 
 function goToLogin() { window.location.href = 'login.html'; }
+
+/* La vista previa del sitio público carga su iframe recién al primer
+   hover/foco — así la pantalla de selección de módulo no paga el
+   costo de cargar qubira.vercel.app si nadie pasa el mouse por ahí. */
+(function setupBrandPreview() {
+  const wrap = document.getElementById('brand-wrap');
+  const iframe = document.getElementById('brand-preview-iframe');
+  if (!wrap || !iframe) return;
+  let loaded = false;
+  function loadPreview() {
+    if (loaded) return;
+    loaded = true;
+    iframe.src = 'https://qubira.vercel.app/';
+  }
+  wrap.addEventListener('mouseenter', loadPreview);
+  wrap.addEventListener('focusin', loadPreview);
+})();
 
 function getToken() { return localStorage.getItem('qubira_token'); }
 
