@@ -25,8 +25,14 @@
     --shadow-hover: 0 8px 18px rgba(17,24,39,.09);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { min-height: 100%; font-family: 'Inter', 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); }
-  body { display: flex; flex-direction: column; min-height: 100dvh; }
+  html, body { height: 100%; font-family: 'Inter', 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); }
+  /* El header y la franja "Selecciona una plataforma" quedan fijos — solo
+     el contenido de <main> (agenda + módulos) scrollea, igual que el
+     patrón ya usado dentro de los paneles (ADG/TI/etc. con su propio
+     #main overflow-y:auto). min-height:0 es necesario para que un hijo
+     flex pueda encogerse por debajo de su contenido y así sí scrollear
+     en vez de empujar la altura del body. */
+  body { display: flex; flex-direction: column; height: 100dvh; overflow: hidden; }
 
   /* ---------- Header ---------- */
   header {
@@ -126,7 +132,7 @@
   .page-head .stat span { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .05em; font-weight: 600; }
 
   /* ---------- Modules ---------- */
-  main { flex: 1; padding: clamp(16px, 2.4vh, 24px) 20px; }
+  main { flex: 1; min-height: 0; overflow-y: auto; padding: clamp(16px, 2.4vh, 24px) 20px; }
   .section-wrap { max-width: 1200px; margin: 0 auto; }
 
   /* Agenda (izquierda) + módulos (derecha) — en pantallas angostas se
@@ -357,7 +363,7 @@ const ICONS = {
 };
 
 const MODULE_META = {
-  TI:        { label: 'TI',         desc: 'Proyectos técnicos, tecnologías y cronogramas.', icon: ICONS.cpu,       accent: '#1d4ed8', accentLight: '#dbeafe', group: 'ops' },
+  TI:        { label: 'OTI',        desc: 'Proyectos técnicos, tecnologías y cronogramas.', icon: ICONS.cpu,       accent: '#1d4ed8', accentLight: '#dbeafe', group: 'ops' },
   ADG:       { label: 'ADG',        desc: 'Aprobación y administración de proyectos.',       icon: ICONS.clipboard, accent: '#6d28d9', accentLight: '#ede9fe', group: 'ops' },
   RRHH:      { label: 'RR. HH.',    desc: 'Personal, contratos, nómina y reclutamiento.',    icon: ICONS.users,     accent: '#047857', accentLight: '#d1fae5', group: 'ops' },
   SOPORTE:   { label: 'Soporte',    desc: 'Mesa de ayuda y soporte técnico.',                icon: ICONS.headset,   accent: '#b45309', accentLight: '#fef3c7', group: 'ops' },
