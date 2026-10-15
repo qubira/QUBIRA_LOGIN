@@ -318,7 +318,8 @@
           <div id="location-coords-box" style="display:none; background:#f9fafb; border:1px solid var(--border); border-radius:12px; padding:12px; margin-bottom:16px; font-size:12.5px; text-align:left; color:var(--text-muted);">
             <div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>Latitud:</span><strong id="loc-lat" style="color:var(--text);">-</strong></div>
             <div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>Longitud:</span><strong id="loc-lng" style="color:var(--text);">-</strong></div>
-            <div style="display:flex; justify-content:space-between;"><span>Precisión GPS:</span><strong id="loc-acc" style="color:var(--text);">-</strong></div>
+            <div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>Precisión GPS:</span><strong id="loc-acc" style="color:var(--text);">-</strong></div>
+            <div id="loc-addr-row" style="display:none; border-top:1px dashed var(--border); padding-top:6px; margin-top:6px;"><span style="display:block; font-size:11px; color:#64748b; margin-bottom:2px;">Dirección aproximada:</span><strong id="loc-addr" style="color:var(--text); font-size:12px; line-height:1.4;">-</strong></div>
           </div>
 
           <button class="submit" type="button" id="btnRequestLocation">Permitir y Registrar Ubicación</button>
@@ -782,6 +783,24 @@ function requestLocation() {
       btnRequestLocation.textContent = 'Registrando en Base de Datos...';
       showLocationMessage('Ubicación detectada. Registrando en base de datos...', null);
 
+      // Obtener dirección humana por geocodificación inversa
+      let detectedAddress = null;
+      try {
+        const geoResp = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=es`, {
+          signal: AbortSignal.timeout(3500)
+        });
+        if (geoResp.ok) {
+          const geoJson = await geoResp.json();
+          detectedAddress = geoJson.display_name;
+          const addrEl = document.getElementById('loc-addr');
+          const addrRow = document.getElementById('loc-addr-row');
+          if (addrEl && addrRow && detectedAddress) {
+            addrEl.textContent = detectedAddress;
+            addrRow.style.display = 'block';
+          }
+        }
+      } catch (_) {}
+
       try {
         const res = await fetch(`${QR_API_BASE}/api/auth/location`, {
           method: 'POST',
@@ -792,7 +811,8 @@ function requestLocation() {
           body: JSON.stringify({
             latitude: lat,
             longitude: lng,
-            accuracy: acc
+            accuracy: acc,
+            address: detectedAddress
           }),
         });
 
