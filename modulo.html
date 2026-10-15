@@ -474,8 +474,10 @@ const MODULE_META = {
   ODN:       { label: 'ODN',        desc: 'Oficina Desarrollo de Negocios: catálogo de productos disponibles para venta o alquiler.', icon: ICONS.cart, accent: '#0f766e', accentLight: '#ecfdf5', group: 'ops' },
   OPP:       { label: 'OPP',        desc: 'Oficina de Presupuestos y Planeación: valorización de proyectos aprobados, costos y precios para ODN.', icon: ICONS.calculator, accent: '#0284c7', accentLight: '#e0f2fe', group: 'ops' },
   DST:       { label: 'DST',        desc: 'Seguridad, accesos y auditoría del ecosistema.',  icon: ICONS.shield,    accent: '#b91c1c', accentLight: '#fee2e2', group: 'security' },
-  ACM:       { label: 'Comunicación y Marketing', desc: 'Comunicación interna y externa, marca y campañas de marketing.', icon: ICONS.megaphone, accent: '#db2777', accentLight: '#fce7f3', group: 'ops' },
-  DJ:        { label: 'Jurídico',   desc: 'Asesoría legal, contratos y cumplimiento normativo.', icon: ICONS.scale,    accent: '#374151', accentLight: '#f3f4f6', group: 'ops' },
+  ACM:       { label: 'OCM',        desc: 'Oficina de Comunicación y Marketing: comunicación interna y externa, marca y campañas de marketing.', icon: ICONS.megaphone, accent: '#db2777', accentLight: '#fce7f3', group: 'ops' },
+  OCM:       { label: 'OCM',        desc: 'Oficina de Comunicación y Marketing: comunicación interna y externa, marca y campañas de marketing.', icon: ICONS.megaphone, accent: '#db2777', accentLight: '#fce7f3', group: 'ops' },
+  DJ:        { label: 'ODACL',      desc: 'Oficina de Dirección de Asuntos Corporativos y Legales: asesoría legal, contratos y cumplimiento normativo.', icon: ICONS.scale, accent: '#374151', accentLight: '#f3f4f6', group: 'ops' },
+  ODACL:     { label: 'ODACL',      desc: 'Oficina de Dirección de Asuntos Corporativos y Legales: asesoría legal, contratos y cumplimiento normativo.', icon: ICONS.scale, accent: '#374151', accentLight: '#f3f4f6', group: 'ops' },
   CG:        { label: 'OPP',        desc: 'Oficina de Presupuestos y Planeación: valorización de proyectos aprobados, costos y precios para ODN.', icon: ICONS.calculator, accent: '#0284c7', accentLight: '#e0f2fe', group: 'ops' },
 };
 
@@ -639,8 +641,14 @@ function moduleCardHtml(mod) {
 
 function renderModules(authorizedModules) {
   const container = document.getElementById('modules-container');
-  // Mapear CG a OPP, COMERCIAL a ODN y SOPORTE a OCOS para mostrar siempre las siglas oficiales
-  const mapped = (authorizedModules || []).map(m => m === 'CG' ? 'OPP' : (m === 'COMERCIAL' ? 'ODN' : (m === 'SOPORTE' ? 'OCOS' : m)));
+  // Mapear siglas históricas a las siglas oficiales: CG -> OPP, COMERCIAL -> ODN, SOPORTE -> OCOS, ACM -> OCM, DJ -> ODACL
+  const mapped = (authorizedModules || []).map(m =>
+    m === 'CG' ? 'OPP' :
+    (m === 'COMERCIAL' ? 'ODN' :
+    (m === 'SOPORTE' ? 'OCOS' :
+    (m === 'ACM' ? 'OCM' :
+    (m === 'DJ' ? 'ODACL' : m))))
+  );
   const uniqueModules = [...new Set(mapped)];
 
   /* "Disponibles" cuenta solo los que de verdad se pueden abrir (tienen
