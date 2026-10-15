@@ -424,22 +424,26 @@ const IS_LOCAL = location.hostname === 'localhost' || location.hostname === '127
 document.getElementById('env-badge').textContent = IS_LOCAL ? 'Entorno de desarrollo' : 'Producción';
 
 /* Cada panel es su propio dominio (proyectos de Vercel separados) —
-   no hay rutas internas compartidas. COMERCIAL todavía no tiene sitio
-   desplegado (QUBIRA_COMERCIAL está vacío), por eso no tiene target. */
+   no hay rutas internas compartidas. OPP cuenta con su propio panel
+   desplegado para presupuestos, costeo y precios comerciales. */
 const MODULE_TARGETS = {
-  TI:       IS_LOCAL ? 'http://localhost:5511' : 'https://qubira-ti.vercel.app',
-  ADG:      IS_LOCAL ? 'http://localhost:5512' : 'https://qubira-adg.vercel.app',
-  RRHH:     IS_LOCAL ? 'http://localhost:5513' : 'https://qubira-rrhh.vercel.app',
-  SOPORTE:  IS_LOCAL ? 'http://localhost:5514' : 'https://qubira-soporte.vercel.app',
-  DST:      IS_LOCAL ? 'http://localhost:5516' : 'https://qubira-dst.vercel.app',
+  TI:        IS_LOCAL ? 'http://localhost:5511' : 'https://qubira-ti.vercel.app',
+  ADG:       IS_LOCAL ? 'http://localhost:5512' : 'https://qubira-adg.vercel.app',
+  RRHH:      IS_LOCAL ? 'http://localhost:5513' : 'https://qubira-rrhh.vercel.app',
+  SOPORTE:   IS_LOCAL ? 'http://localhost:5514' : 'https://qubira-soporte.vercel.app',
+  DST:       IS_LOCAL ? 'http://localhost:5516' : 'https://qubira-dst.vercel.app',
   COMERCIAL: IS_LOCAL ? 'http://localhost:5517' : 'https://qubira-comercial.vercel.app',
+  OPP:       IS_LOCAL ? 'http://localhost:5518' : 'https://qubira-opp.vercel.app',
+  CG:        IS_LOCAL ? 'http://localhost:5518' : 'https://qubira-opp.vercel.app',
 };
 
 /* TI/ADG son SPA — el traspaso lo recibe app.js en cualquier ruta,
-   incluida la raíz. RRHH/Soporte/DST/Comercial son un index.html estático
+   incluida la raíz. RRHH/Soporte/DST/Comercial/OPP son un index.html estático
    con un login.html aparte que recibe el traspaso — mandarlo a la raíz
    haría que el gate de sesión de index.html lo descarte antes de leerlo. */
-const MODULE_HANDOFF_PATH = { TI: '/', ADG: '/', RRHH: '/login.html', SOPORTE: '/login.html', DST: '/login.html', COMERCIAL: '/login.html' };
+const MODULE_HANDOFF_PATH = {
+  TI: '/', ADG: '/', RRHH: '/login.html', SOPORTE: '/login.html', DST: '/login.html', COMERCIAL: '/login.html', OPP: '/login.html', CG: '/login.html'
+};
 
 /* Íconos en línea (trazo simple, estilo Feather) en vez de las
    iniciales de dos letras — accent/accentLight/group solo cambian la
@@ -455,6 +459,7 @@ const ICONS = {
   megaphone: '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>',
   scale: '<path d="M12 2v19"></path><path d="M5 22h14"></path><path d="M3 7l4-2 4 2"></path><path d="M13 7l4-2 4 2"></path><path d="M3 7l2 6a2.5 2.5 0 0 0 4 0l2-6"></path><path d="M13 7l2 6a2.5 2.5 0 0 0 4 0l2-6"></path>',
   barchart: '<line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line>',
+  calculator: '<rect x="4" y="2" width="16" height="20" rx="2"></rect><line x1="8" y1="6" x2="16" y2="6"></line><line x1="16" y1="14" x2="16" y2="18"></line><path d="M16 10h.01"></path><path d="M12 10h.01"></path><path d="M8 10h.01"></path><path d="M12 14h.01"></path><path d="M8 14h.01"></path><path d="M12 18h.01"></path><path d="M8 18h.01"></path>',
 };
 
 const MODULE_META = {
@@ -463,10 +468,11 @@ const MODULE_META = {
   RRHH:      { label: 'RR. HH.',    desc: 'Personal, contratos, nómina y reclutamiento.',    icon: ICONS.users,     accent: '#047857', accentLight: '#d1fae5', group: 'ops' },
   SOPORTE:   { label: 'Soporte',    desc: 'Mesa de ayuda y soporte técnico.',                icon: ICONS.headset,   accent: '#b45309', accentLight: '#fef3c7', group: 'ops' },
   COMERCIAL: { label: 'Comercial',  desc: 'Catálogo de productos disponibles para venta o alquiler.', icon: ICONS.cart, accent: '#0f766e', accentLight: '#ecfdf5', group: 'ops' },
+  OPP:       { label: 'OPP',        desc: 'Oficina de Presupuestos y Planeación: valorización de proyectos aprobados, costos y precios para Comercial.', icon: ICONS.calculator, accent: '#0284c7', accentLight: '#e0f2fe', group: 'ops' },
   DST:       { label: 'DST',        desc: 'Seguridad, accesos y auditoría del ecosistema.',  icon: ICONS.shield,    accent: '#b91c1c', accentLight: '#fee2e2', group: 'security' },
   ACM:       { label: 'Comunicación y Marketing', desc: 'Comunicación interna y externa, marca y campañas de marketing.', icon: ICONS.megaphone, accent: '#db2777', accentLight: '#fce7f3', group: 'ops' },
   DJ:        { label: 'Jurídico',   desc: 'Asesoría legal, contratos y cumplimiento normativo.', icon: ICONS.scale,    accent: '#374151', accentLight: '#f3f4f6', group: 'ops' },
-  CG:        { label: 'Control de Gestión', desc: 'Indicadores, seguimiento y control de gestión corporativa.', icon: ICONS.barchart, accent: '#0e7490', accentLight: '#ecfeff', group: 'ops' },
+  CG:        { label: 'OPP',        desc: 'Oficina de Presupuestos y Planeación: valorización de proyectos aprobados, costos y precios para Comercial.', icon: ICONS.calculator, accent: '#0284c7', accentLight: '#e0f2fe', group: 'ops' },
 };
 
 const GROUP_ORDER = ['ops', 'security'];
@@ -629,13 +635,16 @@ function moduleCardHtml(mod) {
 
 function renderModules(authorizedModules) {
   const container = document.getElementById('modules-container');
+  // Mapear CG a OPP para mostrar siempre la tarjeta oficial habilitada de OPP
+  const mapped = (authorizedModules || []).map(m => m === 'CG' ? 'OPP' : m);
+  const uniqueModules = [...new Set(mapped)];
+
   /* "Disponibles" cuenta solo los que de verdad se pueden abrir (tienen
-     target desplegado) — antes contaba también los "Próximamente"
-     autorizados, lo que no cuadraba con lo que se veía en pantalla. */
-  const availableCount = authorizedModules.filter(m => !!MODULE_TARGETS[m]).length;
+     target desplegado) */
+  const availableCount = uniqueModules.filter(m => !!MODULE_TARGETS[m]).length;
   document.getElementById('stat-count').textContent = availableCount;
 
-  if (!authorizedModules.length) {
+  if (!uniqueModules.length) {
     container.className = 'empty-state';
     container.innerHTML = '<strong>No tienes módulos autorizados todavía.</strong><p style="margin-top:8px">Contacta a un administrador para que te asigne un área.</p>';
     return;
@@ -643,9 +652,8 @@ function renderModules(authorizedModules) {
 
   /* Un solo grid con todos los módulos: primero los disponibles
      (ordenados por grupo: áreas operativas, luego seguridad), los
-     "Próximamente" siempre al final — antes se intercalaban con los
-     disponibles sin ningún criterio. */
-  const ordered = [...authorizedModules].sort((a, b) => {
+     "Próximamente" siempre al final. */
+  const ordered = [...uniqueModules].sort((a, b) => {
     const availA = MODULE_TARGETS[a] ? 0 : 1;
     const availB = MODULE_TARGETS[b] ? 0 : 1;
     if (availA !== availB) return availA - availB;
