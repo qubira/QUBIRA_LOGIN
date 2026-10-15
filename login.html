@@ -253,6 +253,22 @@
           </form>
         </div>
 
+        <div id="totp-panel" style="display:none">
+          <p style="font-size:13.5px;color:var(--text-muted);line-height:1.6;margin-bottom:18px">
+            Tu cuenta tiene activada la verificación en dos pasos. Abre tu app autenticadora
+            (Google Authenticator, Authy, etc.) e ingresa el código de 6 dígitos de Qubira.
+          </p>
+          <div class="field">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 2a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1V7a5 5 0 0 0-5-5Zm-3 8V7a3 3 0 1 1 6 0v3H9Z"/>
+            </svg>
+            <input type="text" id="totpCode" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="Código de 6 dígitos" autocomplete="one-time-code" style="padding-left:48px;letter-spacing:.3em;font-weight:700;text-align:center">
+          </div>
+          <button class="submit" type="button" id="totpSubmitBtn">Verificar</button>
+          <button class="submit" type="button" id="totpCancelBtn" style="background:#fff;color:var(--text);border:1px solid var(--border);box-shadow:none;margin-top:10px">Volver</button>
+          <div id="totpMessage" class="message"></div>
+        </div>
+
         <div id="face-panel" style="display:none">
           <div class="face-video-wrap" id="face-video-wrap">
             <video id="face-video" autoplay muted playsinline></video>
@@ -338,6 +354,14 @@ form.addEventListener('submit', async (e) => {
       return;
     }
 
+    if (data.totp_required) {
+      pendingPreToken = data.pre_token;
+      showMessage('', null);
+      setLoading(false);
+      showTotpPanel();
+      return;
+    }
+
     localStorage.setItem('qubira_token', data.token);
     localStorage.setItem('qubira_user', JSON.stringify(data.user));
 
@@ -360,6 +384,86 @@ function setLoading(loading) {
   userInput.disabled = loading;
   passInput.disabled = loading;
   submitBtn.textContent = loading ? 'Verificando...' : 'Ingresar';
+}
+
+/* ============================================================
+   Verificación en dos pasos (TOTP) — segundo paso del login con
+   usuario y contraseña cuando la cuenta la tiene activada. pendingPreToken
+   viene de /login y vence en 5 minutos; si se vence hay que volver a
+   escribir usuario y contraseña (no hay forma de "renovarlo" sin
+   credenciales, es intencional).
+   ============================================================ */
+let pendingPreToken = null;
+const totpPanel     = document.getElementById('totp-panel');
+const totpCodeInput = document.getElementById('totpCode');
+const totpMessage   = document.getElementById('totpMessage');
+const totpSubmitBtn = document.getElementById('totpSubmitBtn');
+const totpCancelBtn = document.getElementById('totpCancelBtn');
+
+function showTotpPanel() {
+  passwordPanel.style.display = 'none';
+  totpPanel.style.display = 'block';
+  totpCodeInput.value = '';
+  totpMessage.textContent = '';
+  totpMessage.className = 'message';
+  setTimeout(() => totpCodeInput.focus(), 50);
+}
+function showTotpMessage(text, success) {
+  totpMessage.textContent = text;
+  totpMessage.className = 'message' + (success === true ? ' success' : success === false ? ' error' : '');
+}
+function setTotpLoading(loading) {
+  totpSubmitBtn.disabled = loading;
+  totpCodeInput.disabled = loading;
+  totpSubmitBtn.textContent = loading ? 'Verificando...' : 'Verificar';
+}
+
+totpCancelBtn.addEventListener('click', () => {
+  pendingPreToken = null;
+  totpPanel.style.display = 'none';
+  passwordPanel.style.display = 'block';
+  showMessage('', null);
+});
+
+totpCodeInput.addEventListener('input', () => {
+  totpCodeInput.value = totpCodeInput.value.replace(/\D/g, '').slice(0, 6);
+});
+totpCodeInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') submitTotp(); });
+totpSubmitBtn.addEventListener('click', submitTotp);
+
+async function submitTotp() {
+  const code = totpCodeInput.value.trim();
+  if (!pendingPreToken) { showTotpMessage('La verificación expiró, vuelve a iniciar sesión.', false); return; }
+  if (code.length !== 6) { showTotpMessage('Ingresa los 6 dígitos del código.', false); return; }
+
+  setTotpLoading(true);
+  showTotpMessage('Verificando código...', null);
+
+  try {
+    const res = await fetch(`${QR_API_BASE}/api/auth/login/totp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pre_token: pendingPreToken, code }),
+    });
+    const data = await res.json();
+
+    if (!res.ok || !data.ok) {
+      showTotpMessage(data.error || 'Código inválido.', false);
+      setTotpLoading(false);
+      totpCodeInput.value = '';
+      totpCodeInput.focus();
+      return;
+    }
+
+    localStorage.setItem('qubira_token', data.token);
+    localStorage.setItem('qubira_user', JSON.stringify(data.user));
+    showTotpMessage('¡Acceso concedido! Redirigiendo...', true);
+    setTimeout(goToModulo, 500);
+  } catch (err) {
+    console.error('[LOGIN CENTRAL] Error de red (TOTP):', err);
+    showTotpMessage('No se pudo conectar con la API.', false);
+    setTotpLoading(false);
+  }
 }
 
 /* ============================================================

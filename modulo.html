@@ -105,6 +105,46 @@
   }
   .btn-outline-light { background: transparent; color: rgba(255,255,255,.85); border-color: rgba(255,255,255,.22); }
   .btn-outline-light:hover { background: rgba(220,38,38,.14); border-color: rgba(220,38,38,.4); color: #fca5a5; }
+  .btn-outline-light.neutral:hover { background: rgba(79,70,229,.18); border-color: rgba(79,70,229,.4); color: #c7d2fe; }
+
+  /* ---------- Modal: Verificación en dos pasos ---------- */
+  .sec-modal-overlay {
+    position: fixed; inset: 0; background: rgba(17,24,39,.6); z-index: 300;
+    display: none; align-items: center; justify-content: center; padding: 20px;
+  }
+  .sec-modal-overlay.open { display: flex; }
+  .sec-modal {
+    background: var(--card-bg); border-radius: 16px; width: 100%; max-width: 420px;
+    max-height: 90vh; overflow-y: auto; box-shadow: var(--shadow-hover);
+  }
+  .sec-modal__head {
+    padding: 20px 24px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .sec-modal__head h3 { font-size: 16px; font-weight: 800; }
+  .sec-modal__close { background: none; border: none; font-size: 22px; cursor: pointer; color: var(--text-muted); line-height: 1; }
+  .sec-modal__body { padding: 22px 24px; }
+  .sec-modal__body .field { position: relative; margin-bottom: 14px; }
+  .sec-modal__body input {
+    width: 100%; height: 46px; border: 1px solid var(--border); outline: none;
+    border-radius: 10px; padding: 0 14px; background: #f9fafb; color: var(--text);
+    font-size: 14px; font-family: inherit;
+  }
+  .sec-modal__body input:focus { background: #fff; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-light); }
+  .sec-btn {
+    width: 100%; height: 46px; border: none; border-radius: 10px;
+    background: var(--primary); color: #fff; font-size: 13.5px; font-weight: 700;
+    cursor: pointer; font-family: inherit; transition: background .15s;
+  }
+  .sec-btn:hover { background: var(--primary-dark); }
+  .sec-btn:disabled { opacity: .6; cursor: not-allowed; }
+  .sec-btn-outline { background: #fff; color: var(--text); border: 1px solid var(--border); }
+  .sec-btn-outline:hover { background: var(--gray-bg); }
+  .sec-btn-danger { background: var(--danger); }
+  .sec-btn-danger:hover { background: #b91c1c; }
+  .sec-msg { min-height: 16px; margin-top: 10px; font-size: 12.5px; font-weight: 600; text-align: center; }
+  .sec-msg.success { color: #059669; }
+  .sec-msg.error { color: var(--danger); }
 
   /* ---------- Page header ---------- */
   .page-head {
@@ -658,9 +698,23 @@
         <span id="session-role">—</span>
       </div>
       <div class="avatar" id="session-avatar">–</div>
+      <button class="btn btn-outline-light neutral" id="security-btn" title="Verificación en dos pasos">Seguridad</button>
       <button class="btn btn-outline-light" id="logout-btn">Cerrar sesión</button>
     </div>
   </header>
+
+  <!-- ── MODAL: Verificación en dos pasos (TOTP) ── -->
+  <div class="sec-modal-overlay" id="security-modal">
+    <div class="sec-modal">
+      <div class="sec-modal__head">
+        <h3>Verificación en dos pasos</h3>
+        <button class="sec-modal__close" id="security-close-btn">&times;</button>
+      </div>
+      <div class="sec-modal__body" id="security-modal-body">
+        <p style="color:var(--text-muted);font-size:13px">Cargando…</p>
+      </div>
+    </div>
+  </div>
   <div class="header-accent"></div>
 
   <div class="page-head">
@@ -834,6 +888,139 @@ async function logout() {
   goToLogin();
 }
 document.getElementById('logout-btn').addEventListener('click', logout);
+
+/* ============================================================
+   Verificación en dos pasos (TOTP) — autogestión desde el hub
+   central. Compatible con Google Authenticator, Authy, etc.: el
+   backend solo habla el protocolo estándar (RFC 6238), nunca exige
+   una app propia de Qubira.
+   ============================================================ */
+async function secFetch(path, opts = {}) {
+  const headers = { 'Content-Type': 'application/json', ...(opts.headers || {}) };
+  const token = getToken();
+  if (token) headers.Authorization = 'Bearer ' + token;
+  const res = await fetch(QR_API_BASE + path, { ...opts, headers });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || data.ok === false) throw new Error(data.error || 'Error en la petición');
+  return data;
+}
+
+const securityModal = document.getElementById('security-modal');
+const securityBody   = document.getElementById('security-modal-body');
+
+document.getElementById('security-btn').addEventListener('click', openSecurityModal);
+document.getElementById('security-close-btn').addEventListener('click', closeSecurityModal);
+securityModal.addEventListener('click', (e) => { if (e.target === securityModal) closeSecurityModal(); });
+
+function openSecurityModal() {
+  securityModal.classList.add('open');
+  renderSecurityStatus();
+}
+function closeSecurityModal() {
+  securityModal.classList.remove('open');
+}
+
+async function renderSecurityStatus() {
+  securityBody.innerHTML = `<p style="color:var(--text-muted);font-size:13px">Cargando…</p>`;
+  try {
+    const data = await secFetch('/api/auth/totp/status');
+    if (data.enabled) {
+      securityBody.innerHTML = `
+        <p style="font-size:13.5px;line-height:1.6;margin-bottom:18px">
+          <strong style="color:#059669">✓ Verificación en dos pasos activada.</strong><br>
+          Cada vez que inicies sesión con usuario y contraseña, también te pedirá el código
+          de tu app autenticadora.
+        </p>
+        <p style="font-size:12.5px;color:var(--text-muted);margin-bottom:14px">
+          Para desactivarla, confirma tu contraseña actual.
+        </p>
+        <div class="field"><input type="password" id="sec-disable-password" placeholder="Contraseña actual"></div>
+        <button class="sec-btn sec-btn-danger" id="sec-disable-btn">Desactivar verificación en dos pasos</button>
+        <div class="sec-msg" id="sec-msg"></div>
+      `;
+      document.getElementById('sec-disable-btn').addEventListener('click', disableTotp);
+    } else {
+      securityBody.innerHTML = `
+        <p style="font-size:13.5px;line-height:1.6;margin-bottom:18px">
+          Agrega una capa extra de seguridad a tu cuenta: además de tu contraseña, se te
+          pedirá un código de 6 dígitos generado por una app autenticadora
+          (Google Authenticator, Authy, Microsoft Authenticator, etc.).
+        </p>
+        <button class="sec-btn" id="sec-start-btn">Activar verificación en dos pasos</button>
+        <div class="sec-msg" id="sec-msg"></div>
+      `;
+      document.getElementById('sec-start-btn').addEventListener('click', startTotpSetup);
+    }
+  } catch (err) {
+    securityBody.innerHTML = `<p style="color:var(--danger);font-size:13px">${err.message || 'No se pudo cargar'}</p>`;
+  }
+}
+
+async function startTotpSetup() {
+  securityBody.innerHTML = `<p style="color:var(--text-muted);font-size:13px">Generando código…</p>`;
+  try {
+    const data = await secFetch('/api/auth/totp/setup', { method: 'POST' });
+    securityBody.innerHTML = `
+      <p style="font-size:13px;line-height:1.6;margin-bottom:14px">
+        Escanea este código QR con tu app autenticadora (Google Authenticator, Authy, etc.):
+      </p>
+      <div style="text-align:center;margin-bottom:14px">
+        <img src="${data.qr}" alt="Código QR" style="width:200px;height:200px;border:1px solid var(--border);border-radius:10px;padding:8px">
+      </div>
+      <p style="font-size:11.5px;color:var(--text-muted);text-align:center;margin-bottom:18px">
+        ¿No puedes escanear? Ingresa esta clave manualmente:<br>
+        <code style="font-size:12px;font-weight:700;letter-spacing:.05em;user-select:all">${data.secret}</code>
+      </p>
+      <p style="font-size:12.5px;color:var(--text-muted);margin-bottom:10px">
+        Luego, ingresa el código de 6 dígitos que te muestra la app para confirmar:
+      </p>
+      <div class="field"><input type="text" id="sec-confirm-code" inputmode="numeric" maxlength="6" placeholder="Código de 6 dígitos" style="text-align:center;letter-spacing:.3em;font-weight:700"></div>
+      <button class="sec-btn" id="sec-confirm-btn">Confirmar y activar</button>
+      <button class="sec-btn sec-btn-outline" id="sec-cancel-btn" style="margin-top:8px">Cancelar</button>
+      <div class="sec-msg" id="sec-msg"></div>
+    `;
+    const codeInput = document.getElementById('sec-confirm-code');
+    codeInput.addEventListener('input', () => { codeInput.value = codeInput.value.replace(/\D/g, '').slice(0, 6); });
+    codeInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') confirmTotpSetup(); });
+    document.getElementById('sec-confirm-btn').addEventListener('click', confirmTotpSetup);
+    document.getElementById('sec-cancel-btn').addEventListener('click', renderSecurityStatus);
+    codeInput.focus();
+  } catch (err) {
+    securityBody.innerHTML = `<p style="color:var(--danger);font-size:13px">${err.message || 'No se pudo generar el código'}</p>`;
+  }
+}
+
+async function confirmTotpSetup() {
+  const msg = document.getElementById('sec-msg');
+  const code = document.getElementById('sec-confirm-code').value.trim();
+  if (code.length !== 6) { msg.textContent = 'Ingresa los 6 dígitos del código.'; msg.className = 'sec-msg error'; return; }
+  const btn = document.getElementById('sec-confirm-btn');
+  btn.disabled = true; btn.textContent = 'Confirmando…';
+  try {
+    await secFetch('/api/auth/totp/confirm', { method: 'POST', body: JSON.stringify({ code }) });
+    await renderSecurityStatus();
+  } catch (err) {
+    msg.textContent = err.message || 'Código inválido';
+    msg.className = 'sec-msg error';
+    btn.disabled = false; btn.textContent = 'Confirmar y activar';
+  }
+}
+
+async function disableTotp() {
+  const msg = document.getElementById('sec-msg');
+  const password = document.getElementById('sec-disable-password').value;
+  if (!password) { msg.textContent = 'Ingresa tu contraseña actual.'; msg.className = 'sec-msg error'; return; }
+  const btn = document.getElementById('sec-disable-btn');
+  btn.disabled = true; btn.textContent = 'Desactivando…';
+  try {
+    await secFetch('/api/auth/totp/disable', { method: 'POST', body: JSON.stringify({ password }) });
+    await renderSecurityStatus();
+  } catch (err) {
+    msg.textContent = err.message || 'No se pudo desactivar';
+    msg.className = 'sec-msg error';
+    btn.disabled = false; btn.textContent = 'Desactivar verificación en dos pasos';
+  }
+}
 
 function renderSession(user) {
   const nombre = `${user.nombre || ''} ${user.apellidos || ''}`.trim() || user.username;
