@@ -151,6 +151,31 @@
   @keyframes enterUp { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
   @keyframes scaleIn { from{opacity:0;transform:scale(.96) translateY(16px)} to{opacity:1;transform:scale(1) translateY(0)} }
 
+  .location-icon-wrap {
+    position: relative;
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 16px;
+    border-radius: 50%;
+    background: rgba(79, 70, 229, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary);
+  }
+  .location-pulse {
+    position: absolute;
+    inset: -6px;
+    border-radius: 50%;
+    border: 2px solid var(--primary-2);
+    animation: locPulse 1.8s ease-out infinite;
+    opacity: 0;
+  }
+  @keyframes locPulse {
+    0% { transform: scale(.8); opacity: .8; }
+    100% { transform: scale(1.4); opacity: 0; }
+  }
+
   @media (max-width: 1040px) {
     .shell { grid-template-columns: 1fr; }
     .brand-side { padding: 40px 24px 26px; }
@@ -278,6 +303,29 @@
           <button class="submit" type="button" id="faceCancelBtn" style="background:#fff;color:var(--text);border:1px solid var(--border);box-shadow:none;">Usar usuario y contraseña</button>
         </div>
 
+        <div id="location-panel" style="display:none; text-align:center;">
+          <div class="location-icon-wrap">
+            <div class="location-pulse" id="location-pulse"></div>
+            <svg viewBox="0 0 24 24" style="width:30px; height:30px; fill:currentColor;" aria-hidden="true">
+              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+            </svg>
+          </div>
+          <h2 style="font-size:24px; margin-bottom:8px; font-weight:800;">Verificación de Ubicación</h2>
+          <p id="location-desc" style="font-size:13.5px; color:var(--text-muted); line-height:1.6; margin-bottom:18px;">
+            Para autorizar el acceso y registrar la sesión en la base de datos corporativa, requerimos registrar tu ubicación GPS.
+          </p>
+
+          <div id="location-coords-box" style="display:none; background:#f9fafb; border:1px solid var(--border); border-radius:12px; padding:12px; margin-bottom:16px; font-size:12.5px; text-align:left; color:var(--text-muted);">
+            <div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>Latitud:</span><strong id="loc-lat" style="color:var(--text);">-</strong></div>
+            <div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>Longitud:</span><strong id="loc-lng" style="color:var(--text);">-</strong></div>
+            <div style="display:flex; justify-content:space-between;"><span>Precisión GPS:</span><strong id="loc-acc" style="color:var(--text);">-</strong></div>
+          </div>
+
+          <button class="submit" type="button" id="btnRequestLocation">Permitir y Registrar Ubicación</button>
+          <button class="submit" type="button" id="btnCancelLocation" style="background:#fff; color:var(--text); border:1px solid var(--border); box-shadow:none; margin-top:10px;">Cancelar y Salir</button>
+          <div id="location-message" class="message" style="margin-top:14px;"></div>
+        </div>
+
         <div class="foot-note">
           Acceso exclusivo para personal autorizado de Qubira.
         </div>
@@ -294,16 +342,39 @@ const QR_API_BASE = (location.hostname === 'localhost' || location.hostname === 
 
 function goToModulo() { window.location.href = 'modulo.html'; }
 
+/* Variables de estado para la sesión activa y verificación de ubicación */
+let currentSessionToken = null;
+let currentSessionUser  = null;
+
+const locationPanel      = document.getElementById('location-panel');
+const btnRequestLocation = document.getElementById('btnRequestLocation');
+const btnCancelLocation  = document.getElementById('btnCancelLocation');
+const locationMessage    = document.getElementById('location-message');
+const locationDesc       = document.getElementById('location-desc');
+const locationCoordsBox  = document.getElementById('location-coords-box');
+const locLat             = document.getElementById('loc-lat');
+const locLng             = document.getElementById('loc-lng');
+const locAcc             = document.getElementById('loc-acc');
+
 /* Si ya hay un token central válido, salta directo al dashboard de
-   módulos en vez de mostrar el formulario de nuevo. */
+   módulos o al panel de ubicación si viene con parámetro redirect */
 (function checkExistingSession() {
   const existingToken = localStorage.getItem('qubira_token');
   if (!existingToken) return;
 
+  const redirectParam = new URLSearchParams(window.location.search).get('redirect');
+
   fetch(`${QR_API_BASE}/api/auth/me`, { headers: { Authorization: 'Bearer ' + existingToken } })
     .then((res) => {
       if (res.ok) {
-        goToModulo();
+        return res.json().then((data) => {
+          const user = data.user || JSON.parse(localStorage.getItem('qubira_user') || '{}');
+          if (redirectParam) {
+            showLocationPanel(existingToken, user);
+          } else {
+            goToModulo();
+          }
+        });
       } else {
         localStorage.removeItem('qubira_token');
         localStorage.removeItem('qubira_user');
@@ -365,8 +436,11 @@ form.addEventListener('submit', async (e) => {
     localStorage.setItem('qubira_token', data.token);
     localStorage.setItem('qubira_user', JSON.stringify(data.user));
 
-    showMessage('¡Acceso concedido! Redirigiendo...', true);
-    setTimeout(goToModulo, 500);
+    showMessage('¡Acceso concedido! Solicitando ubicación...', true);
+    setTimeout(() => {
+      setLoading(false);
+      showLocationPanel(data.token, data.user);
+    }, 450);
 
   } catch (err) {
     console.error('[LOGIN CENTRAL] Error de red:', err);
@@ -457,8 +531,11 @@ async function submitTotp() {
 
     localStorage.setItem('qubira_token', data.token);
     localStorage.setItem('qubira_user', JSON.stringify(data.user));
-    showTotpMessage('¡Acceso concedido! Redirigiendo...', true);
-    setTimeout(goToModulo, 500);
+    showTotpMessage('¡Código verificado! Solicitando ubicación...', true);
+    setTimeout(() => {
+      setTotpLoading(false);
+      showLocationPanel(data.token, data.user);
+    }, 450);
   } catch (err) {
     console.error('[LOGIN CENTRAL] Error de red (TOTP):', err);
     showTotpMessage('No se pudo conectar con la API.', false);
@@ -539,8 +616,11 @@ function showFacePanel() {
 function showPasswordPanel() {
   faceLoopActive = false;
   stopFaceStream();
+  locationPanel.style.display = 'none';
   facePanel.style.display = 'none';
   passwordPanel.style.display = 'block';
+  const tabs = document.querySelector('.login-tabs');
+  if (tabs) tabs.style.display = 'flex';
   tabFace.classList.remove('tab-active');
   tabPassword.classList.add('tab-active');
 }
@@ -597,8 +677,10 @@ async function faceLoop() {
         stopFaceStream();
         localStorage.setItem('qubira_token', data.token);
         localStorage.setItem('qubira_user', JSON.stringify(data.user));
-        setFaceStatus(`¡Bienvenido, ${data.user.nombre}! Redirigiendo...`, 'success');
-        setTimeout(goToModulo, 600);
+        setFaceStatus(`¡Bienvenido, ${data.user.nombre}! Solicitando ubicación...`, 'success');
+        setTimeout(() => {
+          showLocationPanel(data.token, data.user);
+        }, 500);
         return;
       }
 
@@ -625,6 +707,153 @@ async function faceLoop() {
   }
 
   if (faceLoopActive) setTimeout(faceLoop, FACE_RETRY_MS);
+}
+
+/* ============================================================
+   VERIFICACIÓN Y REGISTRO DE UBICACIÓN GPS
+   ============================================================ */
+function showLocationPanel(token, user) {
+  currentSessionToken = token;
+  currentSessionUser  = user;
+
+  // Ocultar tabs y otros paneles
+  const tabs = document.querySelector('.login-tabs');
+  if (tabs) tabs.style.display = 'none';
+  passwordPanel.style.display = 'none';
+  totpPanel.style.display     = 'none';
+  facePanel.style.display     = 'none';
+
+  // Mostrar panel de ubicación
+  locationPanel.style.display = 'block';
+  locationMessage.textContent = '';
+  locationMessage.className   = 'message';
+
+  if (user && (user.nombre || user.username)) {
+    locationDesc.textContent = `Hola ${user.nombre || user.username}. Para autorizar tu sesión y registrar el acceso en la base de datos corporativa, requerimos tu ubicación GPS.`;
+  }
+
+  // Solicitar ubicación automáticamente
+  requestLocation();
+}
+
+function showLocationMessage(text, success) {
+  locationMessage.textContent = text;
+  locationMessage.className   = 'message' + (success === true ? ' success' : success === false ? ' error' : '');
+}
+
+btnCancelLocation.addEventListener('click', () => {
+  localStorage.removeItem('qubira_token');
+  localStorage.removeItem('qubira_user');
+  currentSessionToken = null;
+  currentSessionUser  = null;
+  locationPanel.style.display = 'none';
+  const tabs = document.querySelector('.login-tabs');
+  if (tabs) tabs.style.display = 'flex';
+  passwordPanel.style.display = 'block';
+  showMessage('Inicio de sesión cancelado.', false);
+  setLoading(false);
+});
+
+btnRequestLocation.addEventListener('click', () => {
+  requestLocation();
+});
+
+function requestLocation() {
+  if (!navigator.geolocation) {
+    showLocationMessage('Tu navegador no cuenta con soporte para GPS/geolocalización.', false);
+    return;
+  }
+
+  btnRequestLocation.disabled    = true;
+  btnRequestLocation.textContent = 'Obteniendo GPS...';
+  showLocationMessage('Esperando confirmación de ubicación en tu navegador...', null);
+
+  navigator.geolocation.getCurrentPosition(
+    async (pos) => {
+      const lat = pos.coords.latitude;
+      const lng = pos.coords.longitude;
+      const acc = pos.coords.accuracy;
+
+      locLat.textContent = lat.toFixed(6);
+      locLng.textContent = lng.toFixed(6);
+      locAcc.textContent = `±${Math.round(acc)} m`;
+      locationCoordsBox.style.display = 'block';
+
+      btnRequestLocation.textContent = 'Registrando en Base de Datos...';
+      showLocationMessage('Ubicación detectada. Registrando en base de datos...', null);
+
+      try {
+        const res = await fetch(`${QR_API_BASE}/api/auth/location`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + currentSessionToken,
+          },
+          body: JSON.stringify({
+            latitude: lat,
+            longitude: lng,
+            accuracy: acc
+          }),
+        });
+
+        const data = await res.json().catch(() => ({}));
+
+        if (!res.ok || !data.ok) {
+          showLocationMessage(data.error || 'No se pudo guardar la ubicación en la base de datos.', false);
+          btnRequestLocation.disabled = false;
+          btnRequestLocation.textContent = 'Reintentar Registro';
+          return;
+        }
+
+        showLocationMessage('¡Ubicación registrada exitosamente! Redirigiendo...', true);
+        btnRequestLocation.textContent = '✓ Ubicación Registrada';
+
+        setTimeout(() => {
+          proceedAfterLocation();
+        }, 900);
+
+      } catch (err) {
+        console.error('[LOCATION] Error en llamada a API:', err);
+        showLocationMessage('Error de conexión con la base de datos.', false);
+        btnRequestLocation.disabled = false;
+        btnRequestLocation.textContent = 'Reintentar Registro';
+      }
+    },
+    (err) => {
+      console.warn('[LOCATION] Error geolocalización:', err);
+      let msg = 'No se pudo obtener la ubicación GPS.';
+      if (err.code === 1) { // PERMISSION_DENIED
+        msg = 'Permiso de ubicación denegado. Habilita los permisos de ubicación en tu navegador para continuar.';
+      } else if (err.code === 2) { // POSITION_UNAVAILABLE
+        msg = 'Posición GPS no disponible en este dispositivo.';
+      } else if (err.code === 3) { // TIMEOUT
+        msg = 'Tiempo de espera agotado al consultar GPS.';
+      }
+      showLocationMessage(msg, false);
+      btnRequestLocation.disabled = false;
+      btnRequestLocation.textContent = 'Reintentar Ubicación';
+    },
+    { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
+  );
+}
+
+function proceedAfterLocation() {
+  const redirectParam = new URLSearchParams(window.location.search).get('redirect');
+  if (redirectParam) {
+    try {
+      const url = new URL(redirectParam, window.location.origin);
+      url.searchParams.set('verified', '1');
+      if (currentSessionUser && currentSessionUser.username) {
+        url.searchParams.set('user', currentSessionUser.username);
+      }
+      window.location.href = url.toString();
+      return;
+    } catch {
+      window.location.href = redirectParam;
+      return;
+    }
+  }
+  goToModulo();
 }
 </script>
 </body>
