@@ -433,6 +433,7 @@ const MODULE_TARGETS = {
   SOPORTE:   IS_LOCAL ? 'http://localhost:5514' : 'https://qubira-soporte.vercel.app',
   DST:       IS_LOCAL ? 'http://localhost:5516' : 'https://qubira-dst.vercel.app',
   COMERCIAL: IS_LOCAL ? 'http://localhost:5517' : 'https://qubira-comercial.vercel.app',
+  ODN:       IS_LOCAL ? 'http://localhost:5517' : 'https://qubira-comercial.vercel.app',
   OPP:       IS_LOCAL ? 'http://localhost:5518' : 'https://qubira-opp.vercel.app',
   CG:        IS_LOCAL ? 'http://localhost:5518' : 'https://qubira-opp.vercel.app',
 };
@@ -442,7 +443,7 @@ const MODULE_TARGETS = {
    con un login.html aparte que recibe el traspaso — mandarlo a la raíz
    haría que el gate de sesión de index.html lo descarte antes de leerlo. */
 const MODULE_HANDOFF_PATH = {
-  TI: '/', ADG: '/', RRHH: '/login.html', SOPORTE: '/login.html', DST: '/login.html', COMERCIAL: '/login.html', OPP: '/login.html', CG: '/login.html'
+  TI: '/', ADG: '/', RRHH: '/login.html', SOPORTE: '/login.html', DST: '/login.html', COMERCIAL: '/login.html', ODN: '/login.html', OPP: '/login.html', CG: '/login.html'
 };
 
 /* Íconos en línea (trazo simple, estilo Feather) en vez de las
@@ -467,12 +468,13 @@ const MODULE_META = {
   ADG:       { label: 'ADG',        desc: 'Aprobación y administración de proyectos.',       icon: ICONS.clipboard, accent: '#6d28d9', accentLight: '#ede9fe', group: 'ops' },
   RRHH:      { label: 'RR. HH.',    desc: 'Personal, contratos, nómina y reclutamiento.',    icon: ICONS.users,     accent: '#047857', accentLight: '#d1fae5', group: 'ops' },
   SOPORTE:   { label: 'Soporte',    desc: 'Mesa de ayuda y soporte técnico.',                icon: ICONS.headset,   accent: '#b45309', accentLight: '#fef3c7', group: 'ops' },
-  COMERCIAL: { label: 'Comercial',  desc: 'Catálogo de productos disponibles para venta o alquiler.', icon: ICONS.cart, accent: '#0f766e', accentLight: '#ecfdf5', group: 'ops' },
-  OPP:       { label: 'OPP',        desc: 'Oficina de Presupuestos y Planeación: valorización de proyectos aprobados, costos y precios para Comercial.', icon: ICONS.calculator, accent: '#0284c7', accentLight: '#e0f2fe', group: 'ops' },
+  COMERCIAL: { label: 'ODN',        desc: 'Oficina Desarrollo de Negocios: catálogo de productos disponibles para venta o alquiler.', icon: ICONS.cart, accent: '#0f766e', accentLight: '#ecfdf5', group: 'ops' },
+  ODN:       { label: 'ODN',        desc: 'Oficina Desarrollo de Negocios: catálogo de productos disponibles para venta o alquiler.', icon: ICONS.cart, accent: '#0f766e', accentLight: '#ecfdf5', group: 'ops' },
+  OPP:       { label: 'OPP',        desc: 'Oficina de Presupuestos y Planeación: valorización de proyectos aprobados, costos y precios para ODN.', icon: ICONS.calculator, accent: '#0284c7', accentLight: '#e0f2fe', group: 'ops' },
   DST:       { label: 'DST',        desc: 'Seguridad, accesos y auditoría del ecosistema.',  icon: ICONS.shield,    accent: '#b91c1c', accentLight: '#fee2e2', group: 'security' },
   ACM:       { label: 'Comunicación y Marketing', desc: 'Comunicación interna y externa, marca y campañas de marketing.', icon: ICONS.megaphone, accent: '#db2777', accentLight: '#fce7f3', group: 'ops' },
   DJ:        { label: 'Jurídico',   desc: 'Asesoría legal, contratos y cumplimiento normativo.', icon: ICONS.scale,    accent: '#374151', accentLight: '#f3f4f6', group: 'ops' },
-  CG:        { label: 'OPP',        desc: 'Oficina de Presupuestos y Planeación: valorización de proyectos aprobados, costos y precios para Comercial.', icon: ICONS.calculator, accent: '#0284c7', accentLight: '#e0f2fe', group: 'ops' },
+  CG:        { label: 'OPP',        desc: 'Oficina de Presupuestos y Planeación: valorización de proyectos aprobados, costos y precios para ODN.', icon: ICONS.calculator, accent: '#0284c7', accentLight: '#e0f2fe', group: 'ops' },
 };
 
 const GROUP_ORDER = ['ops', 'security'];
@@ -635,8 +637,8 @@ function moduleCardHtml(mod) {
 
 function renderModules(authorizedModules) {
   const container = document.getElementById('modules-container');
-  // Mapear CG a OPP para mostrar siempre la tarjeta oficial habilitada de OPP
-  const mapped = (authorizedModules || []).map(m => m === 'CG' ? 'OPP' : m);
+  // Mapear CG a OPP y COMERCIAL a ODN para mostrar siempre las siglas oficiales
+  const mapped = (authorizedModules || []).map(m => m === 'CG' ? 'OPP' : (m === 'COMERCIAL' ? 'ODN' : m));
   const uniqueModules = [...new Set(mapped)];
 
   /* "Disponibles" cuenta solo los que de verdad se pueden abrir (tienen
