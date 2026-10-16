@@ -574,22 +574,22 @@
      espacio en el layout) cuando hay más de 1 sesión activa a la vez. */
   .multi-session-alert {
     position: fixed;
-    top: 76px;
-    left: 50%;
-    transform: translateX(-50%) translateY(-12px);
+    right: 24px;
+    bottom: 24px;
     z-index: 400;
-    width: min(92vw, 420px);
+    width: min(92vw, 380px);
     background: var(--card-bg);
     border: 1px solid #fecaca;
     border-left: 4px solid var(--danger);
     border-radius: 14px;
-    box-shadow: var(--shadow-hover);
+    box-shadow: 0 22px 50px -10px rgba(0,0,0,.35), var(--shadow-hover);
     padding: 16px 18px;
     opacity: 0;
     pointer-events: none;
+    transform: translateY(16px);
     transition: opacity .2s ease, transform .2s ease;
   }
-  .multi-session-alert.show { opacity: 1; pointer-events: auto; transform: translateX(-50%) translateY(0); }
+  .multi-session-alert.show { opacity: 1; pointer-events: auto; transform: translateY(0); }
   .multi-session-alert__head { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 12px; }
   .multi-session-alert__icon {
     width: 34px; height: 34px; border-radius: 9px; background: #fef2f2; color: var(--danger);
@@ -1272,6 +1272,7 @@ async function checkMultiSession() {
       `Tienes ${sessions.length} sesiones activas al mismo tiempo`;
     document.getElementById('msa-list').innerHTML = others.map(sessionRowHtml).join('');
     alertEl.classList.add('show');
+    repositionMultiSessionAlert();
   } catch (_) { /* sin red — se reintenta en el próximo heartbeat */ }
 }
 
@@ -1316,13 +1317,24 @@ function markMeetingAsDismissed(id) {
   } catch (_) {}
 }
 
+/* Ambos avisos (reunión y sesiones concurrentes) viven en la misma
+   esquina inferior derecha — si los dos están visibles a la vez, el
+   de sesiones se desplaza arriba del de reunión para no superponerse. */
+function repositionMultiSessionAlert() {
+  const msa = document.getElementById('multi-session-alert');
+  const meeting = document.getElementById('meeting-alert-toast');
+  if (!msa) return;
+  const meetingVisible = meeting && meeting.classList.contains('show');
+  msa.style.bottom = meetingVisible ? `${meeting.offsetHeight + 40}px` : '24px';
+}
+
 function hideMeetingAlert() {
   const el = document.getElementById('meeting-alert-toast');
   if (!el) return;
   el.classList.remove('show');
   clearTimeout(currentAlertTimeout);
   if (currentProgressAnim) cancelAnimationFrame(currentProgressAnim);
-  setTimeout(() => { el.style.display = 'none'; }, 420);
+  setTimeout(() => { el.style.display = 'none'; repositionMultiSessionAlert(); }, 420);
 }
 
 function showMeetingAlert(m, diffMinutes) {
@@ -1382,6 +1394,7 @@ function showMeetingAlert(m, diffMinutes) {
   el.style.display = 'block';
   requestAnimationFrame(() => {
     el.classList.add('show');
+    repositionMultiSessionAlert();
   });
 
   clearTimeout(currentAlertTimeout);
