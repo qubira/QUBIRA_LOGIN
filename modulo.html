@@ -123,6 +123,14 @@
   }
   .sec-modal__head h3 { font-size: 16px; font-weight: 800; }
   .sec-modal__close { background: none; border: none; font-size: 22px; cursor: pointer; color: var(--text-muted); line-height: 1; }
+  .sec-tabs { display: flex; border-bottom: 1px solid var(--border); padding: 0 24px; }
+  .sec-tab {
+    flex: 1; padding: 11px 4px; background: none; border: none; cursor: pointer; font-family: inherit;
+    font-size: 12.5px; font-weight: 700; color: var(--text-muted); border-bottom: 2px solid transparent;
+    transition: color .15s, border-color .15s;
+  }
+  .sec-tab:hover { color: var(--text); }
+  .sec-tab.active { color: var(--primary); border-bottom-color: var(--primary); }
   .sec-modal__body { padding: 22px 24px; }
   .sec-modal__body .field { position: relative; margin-bottom: 14px; }
   .sec-modal__body input {
@@ -202,22 +210,11 @@
     box-sizing: border-box;
   }
 
-  /* Columna 1: agenda + sesiones, apiladas, 100% alto, cada una con su scroll */
-  .side-col {
+  /* Columna 1: Panel de Agenda (fijo a la izquierda, 100% alto, scroll interno) */
+  .agenda-panel {
     width: 320px;
     min-width: 320px;
     max-width: 320px;
-    height: 100%;
-    min-height: 0;
-    max-height: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    flex-shrink: 0;
-    box-sizing: border-box;
-  }
-  .agenda-panel {
-    width: 100%;
     height: 100%;
     min-height: 0;
     max-height: 100%;
@@ -230,7 +227,7 @@
     flex-direction: column;
     overflow: hidden;
     box-sizing: border-box;
-    flex: 1 1 auto;
+    flex-shrink: 0;
   }
   .agenda-panel__head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; flex-shrink: 0; }
   .agenda-panel h2 { font-size: 15px; font-weight: 800; letter-spacing: -.01em; }
@@ -259,30 +256,7 @@
   .agenda-item__modality:hover { text-decoration: underline; }
   .agenda-empty, .agenda-error, .agenda-loading { font-size: 12px; color: var(--text-muted); padding: 6px 2px; }
 
-  /* Panel de "Mis sesiones", apilado debajo de la agenda dentro de .side-col */
-  .sessions-panel {
-    width: 100%;
-    flex: 0 0 auto;
-    max-height: 260px;
-    background: var(--card-bg);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    box-shadow: var(--shadow);
-    padding: 16px 16px 14px 16px;
-    display: flex;
-    flex-direction: column;
-    box-sizing: border-box;
-  }
-  .sessions-panel__head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; flex-shrink: 0; }
-  .sessions-panel h2 { font-size: 15px; font-weight: 800; letter-spacing: -.01em; }
-  #sessions-body {
-    flex: 1 1 auto;
-    min-height: 0;
-    overflow-y: auto;
-    overflow-x: hidden;
-    overscroll-behavior: contain;
-    margin-bottom: 10px;
-  }
+  /* Filas de sesión reutilizadas en la pestaña "Sesiones activas" del modal Seguridad */
   .session-row { display: flex; gap: 9px; align-items: flex-start; padding: 8px 9px; border-radius: 10px; background: var(--gray-bg); }
   .session-row + .session-row { margin-top: 6px; }
   .session-row__dot { width: 8px; height: 8px; border-radius: 50%; background: #10b981; margin-top: 5px; flex-shrink: 0; }
@@ -290,14 +264,6 @@
   .session-row__info { flex: 1; min-width: 0; }
   .session-row__badge { font-size: 10px; font-weight: 700; color: var(--primary); }
   .session-row__meta { font-size: 10.5px; color: var(--text-muted); margin-top: 2px; line-height: 1.4; }
-  .sessions-empty, .sessions-error, .sessions-loading { font-size: 12px; color: var(--text-muted); padding: 4px 2px; }
-  .sessions-panel__btn {
-    width: 100%; flex-shrink: 0; padding: 9px; border: 1px solid #fecaca; background: #fef2f2; color: #b91c1c;
-    border-radius: 10px; font-size: 12.5px; font-weight: 700; cursor: pointer; font-family: inherit;
-    transition: background .15s ease;
-  }
-  .sessions-panel__btn:hover { background: #fee2e2; }
-  .sessions-panel__btn:disabled { opacity: .5; cursor: not-allowed; }
 
   /* Columna 2: Contenedor de Módulos (toma el resto del ancho, 100% alto, scroll interno) */
   #modules-container {
@@ -663,18 +629,8 @@
       width: 100%;
       flex: 1 1 auto;
     }
-    .side-col {
-      order: 2;
-      width: 100%;
-      min-width: 0;
-      max-width: 100%;
-      height: auto;
-      min-height: auto;
-      max-height: none;
-      flex: none;
-      gap: 14px;
-    }
     .agenda-panel {
+      order: 2;
       width: 100%;
       min-width: 0;
       max-width: 100%;
@@ -693,15 +649,6 @@
       overflow-y: auto;
       overscroll-behavior: auto;
       padding-right: 4px;
-    }
-    .sessions-panel {
-      width: 100%;
-      max-height: none;
-      padding: 16px 14px;
-      border-radius: 14px;
-    }
-    #sessions-body {
-      max-height: 220px;
     }
     footer {
       margin-top: auto;
@@ -780,6 +727,10 @@
         <h3>Verificación en dos pasos</h3>
         <button class="sec-modal__close" id="security-close-btn">&times;</button>
       </div>
+      <div class="sec-tabs" id="security-tabs" style="display:none">
+        <button type="button" class="sec-tab active" id="sec-tab-totp" data-tab="totp">Verificación en dos pasos</button>
+        <button type="button" class="sec-tab" id="sec-tab-sessions" data-tab="sessions">Sesiones activas</button>
+      </div>
       <div class="sec-modal__body" id="security-modal-body">
         <p style="color:var(--text-muted);font-size:13px">Cargando…</p>
       </div>
@@ -803,17 +754,10 @@
 
   <main>
     <div class="section-wrap hub-layout">
-      <div class="side-col">
-        <div class="agenda-panel">
-          <div class="agenda-panel__head"><h2>Mi agenda</h2></div>
-          <div class="agenda-panel__today" id="agenda-today">—</div>
-          <div id="agenda-body"><p class="agenda-loading">Cargando agenda…</p></div>
-        </div>
-        <div class="sessions-panel">
-          <div class="sessions-panel__head"><h2>Mis sesiones</h2></div>
-          <div id="sessions-body"><p class="sessions-loading">Cargando…</p></div>
-          <button type="button" class="sessions-panel__btn" id="close-others-btn" style="display:none">Cerrar las demás sesiones</button>
-        </div>
+      <div class="agenda-panel">
+        <div class="agenda-panel__head"><h2>Mi agenda</h2></div>
+        <div class="agenda-panel__today" id="agenda-today">—</div>
+        <div id="agenda-body"><p class="agenda-loading">Cargando agenda…</p></div>
       </div>
       <div id="modules-container" class="loading">
         <div class="modules">
@@ -990,11 +934,16 @@ document.getElementById('security-close-btn').addEventListener('click', closeSec
 securityModal.addEventListener('click', (e) => { if (e.target === securityModal) closeSecurityModal(); });
 
 function openSecurityModal() {
+  document.getElementById('security-tabs').style.display = 'flex';
   securityModal.classList.add('open');
-  renderSecurityStatus();
+  switchSecurityTab('totp');
 }
 function closeSecurityModal() {
   securityModal.classList.remove('open');
+  pendingGateMod = null;
+  document.getElementById('security-tabs').style.display = 'none';
+  const modalTitle = document.querySelector('#security-modal .sec-modal__head h3');
+  if (modalTitle) modalTitle.textContent = 'Verificación en dos pasos';
 }
 
 async function renderSecurityStatus() {
@@ -1075,6 +1024,18 @@ async function confirmTotpSetup() {
   btn.disabled = true; btn.textContent = 'Confirmando…';
   try {
     await secFetch('/api/auth/totp/confirm', { method: 'POST', body: JSON.stringify({ code }) });
+    if (pendingGateMod) {
+      const targetMod = pendingGateMod;
+      const meta = MODULE_META[targetMod] || { label: targetMod };
+      msg.textContent = `✓ 2FA activado con éxito. Accediendo a ${meta.label}…`;
+      msg.className = 'sec-msg success';
+      setTimeout(async () => {
+        closeSecurityModal();
+        pendingGateMod = null;
+        await doEnterModule(targetMod);
+      }, 500);
+      return;
+    }
     await renderSecurityStatus();
   } catch (err) {
     msg.textContent = err.message || 'Código inválido';
@@ -1206,7 +1167,7 @@ async function loadAgenda() {
   }
 }
 
-// ─── Panel "Mis sesiones" ────────────────────────────────────────────────
+// ─── Pestaña "Sesiones activas" dentro del modal Seguridad ────────────────
 /* Casi siempre va a mostrar 1 sola fila: el login normal ya cierra
    cualquier otra sesión de la misma cuenta (revokeOtherSessions en el
    backend). El botón de "cerrar las demás" queda como respaldo visible
@@ -1240,33 +1201,53 @@ function sessionRowHtml(s) {
     </div>`;
 }
 
-async function loadSessions() {
-  const body = document.getElementById('sessions-body');
-  const btn = document.getElementById('close-others-btn');
+async function renderSessionsTab() {
+  securityBody.innerHTML = `<p style="color:var(--text-muted);font-size:13px">Cargando…</p>`;
   try {
     const data = await secFetch('/api/auth/sessions');
     const sessions = data.sessions || [];
-    body.innerHTML = sessions.map(sessionRowHtml).join('') || '<p class="sessions-empty">No hay sesiones activas.</p>';
-    btn.style.display = sessions.length > 1 ? 'block' : 'none';
+    const rowsHtml = sessions.map(sessionRowHtml).join('')
+      || '<p style="color:var(--text-muted);font-size:12.5px">No hay sesiones activas.</p>';
+    securityBody.innerHTML = `
+      <p style="font-size:12.5px;color:var(--text-muted);margin-bottom:14px">
+        Sesiones activas de tu cuenta en los paneles de QUBIRA.
+      </p>
+      <div style="margin-bottom:16px">${rowsHtml}</div>
+      ${sessions.length > 1 ? '<button class="sec-btn sec-btn-danger" id="sec-close-others-btn">Cerrar las demás sesiones</button>' : ''}
+      <div class="sec-msg" id="sec-msg"></div>
+    `;
+    document.getElementById('sec-close-others-btn')?.addEventListener('click', closeOtherSessions);
   } catch (err) {
-    body.innerHTML = '<p class="sessions-error">No se pudieron cargar tus sesiones.</p>';
-    btn.style.display = 'none';
+    securityBody.innerHTML = `<p style="color:var(--danger);font-size:13px">${err.message || 'No se pudieron cargar tus sesiones.'}</p>`;
   }
 }
 
-document.getElementById('close-others-btn').addEventListener('click', async () => {
-  const btn = document.getElementById('close-others-btn');
+async function closeOtherSessions() {
+  const btn = document.getElementById('sec-close-others-btn');
   btn.disabled = true;
   btn.textContent = 'Cerrando…';
   try {
     await secFetch('/api/auth/sessions/close-others', { method: 'POST' });
-    await loadSessions();
+    await renderSessionsTab();
   } catch (err) {
+    const msg = document.getElementById('sec-msg');
+    if (msg) { msg.textContent = err.message || 'No se pudo cerrar las sesiones.'; msg.className = 'sec-msg error'; }
     btn.disabled = false;
-  } finally {
     btn.textContent = 'Cerrar las demás sesiones';
   }
-});
+}
+
+let securityActiveTab = 'totp';
+function switchSecurityTab(tab) {
+  securityActiveTab = tab;
+  document.querySelectorAll('#security-tabs .sec-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  const modalTitle = document.querySelector('#security-modal .sec-modal__head h3');
+  if (modalTitle) modalTitle.textContent = tab === 'sessions' ? 'Sesiones activas' : 'Verificación en dos pasos';
+  if (tab === 'sessions') renderSessionsTab();
+  else renderSecurityStatus();
+}
+document.getElementById('sec-tab-totp').addEventListener('click', () => switchSecurityTab('totp'));
+document.getElementById('sec-tab-sessions').addEventListener('click', () => switchSecurityTab('sessions'));
 
 // ─── Notificador temporal de reunión (esquina inferior derecha) ────────────
 let activeMeetingsList = [];
@@ -1495,17 +1476,15 @@ function renderModules(authorizedModules) {
   });
 }
 
-/* DST (seguridad, accesos y auditoría) exige re-confirmar con el
-   código de 2FA de la propia cuenta antes de entrar — los demás
-   módulos van directo al traspaso de siempre. */
-const DST_GATED_MODULES = ['DST'];
+/* ── Control de acceso con 2FA para entrar a los módulos ───────
+   Al hacer clic en "Entrar" en cualquier módulo disponible (ADG, TI, DST, RRHH, etc.),
+   el sistema solicita la clave de verificación en dos pasos (TOTP de 6 dígitos)
+   antes de autorizar el traspaso (handoff) y redirigir al panel correspondiente. */
+let pendingGateMod = null;
 
 async function enterModule(mod) {
-  if (DST_GATED_MODULES.includes(mod)) {
-    openDstGate(mod);
-    return;
-  }
-  await doEnterModule(mod);
+  if (!MODULE_TARGETS[mod]) return;
+  openModule2faGate(mod);
 }
 
 async function doEnterModule(mod) {
@@ -1528,46 +1507,106 @@ async function doEnterModule(mod) {
   }
 }
 
-/* ── Gate de 2FA para entrar a módulos sensibles (DST) ── */
-let dstGatePendingMod = null;
-
-function openDstGate(mod) {
-  dstGatePendingMod = mod;
+function openModule2faGate(mod) {
+  pendingGateMod = mod;
+  const meta = MODULE_META[mod] || { label: mod, desc: '', icon: ICONS.cpu, accent: '#4f46e5', accentLight: '#eef2ff' };
+  const modalTitle = document.querySelector('#security-modal .sec-modal__head h3');
+  if (modalTitle) modalTitle.textContent = `Acceso a ${meta.label}`;
   securityModal.classList.add('open');
   securityBody.innerHTML = `
-    <p style="font-size:13.5px;line-height:1.6;margin-bottom:18px">
-      Por seguridad, entrar a <strong>DST</strong> exige confirmar con el código de tu app
-      autenticadora. Ingresa el código de 6 dígitos:
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;padding:12px 14px;background:${meta.accentLight};border-radius:12px;border:1px solid ${meta.accent}33">
+      <div style="width:40px;height:40px;border-radius:10px;background:${meta.accent};color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${meta.icon}</svg>
+      </div>
+      <div style="min-width:0">
+        <div style="font-weight:800;font-size:15px;color:#111827">${meta.label}</div>
+        <div style="font-size:11.5px;color:#4b5563;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${meta.desc}</div>
+      </div>
+    </div>
+    <p style="font-size:13px;line-height:1.55;margin-bottom:16px;color:#374151">
+      Por seguridad, para entrar a <strong>${meta.label}</strong> ingresa el código de <strong>6 dígitos</strong> de tu aplicación autenticadora (Google Authenticator, Authy, Microsoft Authenticator):
     </p>
-    <div class="field"><input type="text" id="dst-gate-code" inputmode="numeric" maxlength="6" placeholder="Código de 6 dígitos" style="text-align:center;letter-spacing:.3em;font-weight:700"></div>
-    <button class="sec-btn" id="dst-gate-btn">Continuar</button>
+    <div class="field" style="margin-bottom:14px">
+      <input type="text" id="module-gate-code" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="000 000" style="text-align:center;letter-spacing:.35em;font-size:22px;font-weight:800;height:52px;background:#f9fafb;border:2px solid var(--border)">
+    </div>
+    <button class="sec-btn" id="module-gate-btn" style="background:${meta.accent};display:flex;align-items:center;justify-content:center;gap:8px">
+      <span>Entrar a ${meta.label}</span>
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+    </button>
+    <button class="sec-btn sec-btn-outline" id="module-gate-cancel-btn" style="margin-top:8px">Cancelar</button>
     <div class="sec-msg" id="sec-msg"></div>
   `;
-  const codeInput = document.getElementById('dst-gate-code');
-  codeInput.addEventListener('input', () => { codeInput.value = codeInput.value.replace(/\D/g, '').slice(0, 6); });
-  codeInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') submitDstGate(); });
-  document.getElementById('dst-gate-btn').addEventListener('click', submitDstGate);
-  codeInput.focus();
+
+  const codeInput = document.getElementById('module-gate-code');
+  codeInput.addEventListener('input', () => {
+    codeInput.value = codeInput.value.replace(/\D/g, '').slice(0, 6);
+    if (codeInput.value.length === 6) {
+      submitModule2faGate();
+    }
+  });
+  codeInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') submitModule2faGate();
+  });
+  document.getElementById('module-gate-btn').addEventListener('click', submitModule2faGate);
+  document.getElementById('module-gate-cancel-btn').addEventListener('click', closeSecurityModal);
+  setTimeout(() => codeInput.focus(), 60);
 }
 
-async function submitDstGate() {
+async function submitModule2faGate() {
   const msg = document.getElementById('sec-msg');
-  const code = document.getElementById('dst-gate-code').value.trim();
-  if (code.length !== 6) { msg.textContent = 'Ingresa los 6 dígitos del código.'; msg.className = 'sec-msg error'; return; }
-  const btn = document.getElementById('dst-gate-btn');
-  btn.disabled = true; btn.textContent = 'Verificando…';
+  const codeInput = document.getElementById('module-gate-code');
+  if (!codeInput) return;
+  const code = codeInput.value.trim();
+  if (code.length !== 6) {
+    msg.textContent = 'Ingresa los 6 dígitos del código 2FA.';
+    msg.className = 'sec-msg error';
+    codeInput.focus();
+    return;
+  }
+  const btn = document.getElementById('module-gate-btn');
+  const mod = pendingGateMod;
+  const meta = MODULE_META[mod] || { label: mod, accent: '#4f46e5' };
+  btn.disabled = true;
+  btn.innerHTML = 'Verificando clave 2FA…';
+  msg.textContent = '';
+  msg.className = 'sec-msg';
   try {
     await secFetch('/api/auth/totp/verify', { method: 'POST', body: JSON.stringify({ code }) });
-    closeSecurityModal();
-    const mod = dstGatePendingMod;
-    dstGatePendingMod = null;
-    await doEnterModule(mod);
+    msg.textContent = `✓ Clave 2FA correcta. Abriendo ${meta.label}…`;
+    msg.className = 'sec-msg success';
+    setTimeout(async () => {
+      closeSecurityModal();
+      const targetMod = mod;
+      pendingGateMod = null;
+      await doEnterModule(targetMod);
+    }, 350);
   } catch (err) {
-    msg.textContent = err.message || 'Código inválido';
+    const errorMsg = err.message || 'Código inválido';
     msg.className = 'sec-msg error';
-    btn.disabled = false; btn.textContent = 'Continuar';
+    if (errorMsg.toLowerCase().includes('no tiene activada') || errorMsg.toLowerCase().includes('activada la verificación')) {
+      msg.innerHTML = `
+        <div style="margin-bottom:8px">${errorMsg}</div>
+        <button type="button" class="sec-btn" id="sec-activate-now-btn" style="font-size:12px;height:36px;padding:0 12px;background:#4f46e5">
+          Activar 2FA en mi cuenta ahora
+        </button>
+      `;
+      document.getElementById('sec-activate-now-btn')?.addEventListener('click', () => {
+        const title = document.querySelector('#security-modal .sec-modal__head h3');
+        if (title) title.textContent = 'Verificación en dos pasos';
+        startTotpSetup();
+      });
+    } else {
+      msg.textContent = errorMsg;
+    }
+    btn.disabled = false;
+    btn.innerHTML = `<span>Entrar a ${meta.label}</span> <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>`;
+    codeInput.select();
   }
 }
+
+// Compatibilidad retroactiva
+const openDstGate = openModule2faGate;
+const submitDstGate = submitModule2faGate;
 
 /* true si la sesión seguía siendo válida (y ya renderizó todo), false
    si no — usado tanto por la carga inicial como por el heartbeat. Si
@@ -1610,7 +1649,6 @@ async function checkMe(token) {
   }
 
   loadAgenda();
-  loadSessions();
 
   try {
     await checkMe(token);
