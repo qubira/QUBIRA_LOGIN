@@ -978,6 +978,8 @@ document.getElementById('security-close-btn').addEventListener('click', closeSec
 securityModal.addEventListener('click', (e) => { if (e.target === securityModal) closeSecurityModal(); });
 
 function openSecurityModal() {
+  const modalTitle = document.querySelector('#security-modal .sec-modal__head h3');
+  if (modalTitle) modalTitle.textContent = 'Verificación en dos pasos';
   securityModal.classList.add('open');
   renderSecurityStatus();
 }
