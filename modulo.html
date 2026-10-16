@@ -1567,6 +1567,7 @@ async function doEnterModule(mod) {
 
 function openModule2faGate(mod) {
   pendingGateMod = mod;
+  gateSubmitInFlight = false;
   const meta = MODULE_META[mod] || { label: mod, desc: '', icon: ICONS.cpu, accent: '#4f46e5', accentLight: '#eef2ff' };
   const modalTitle = document.querySelector('#security-modal .sec-modal__head h3');
   if (modalTitle) modalTitle.textContent = `Acceso a ${meta.label}`;
@@ -1610,7 +1611,20 @@ function openModule2faGate(mod) {
   setTimeout(() => codeInput.focus(), 60);
 }
 
+/* El campo se auto-envía al llegar a 6 dígitos (evento 'input'), pero
+   si justo después el usuario presiona Enter por costumbre, el
+   'keydown' dispara un SEGUNDO envío en paralelo — dos códigos de
+   traspaso distintos, dos "window.location.href" compitiendo entre
+   sí. En paneles ligeros (login.html) la carrera no se nota porque
+   cualquiera de los dos códigos es válido igual; en ADG/TI, que
+   cargan como app completa (más lenta), da tiempo a que la segunda
+   redirección interrumpa a la primera a medio cargar, lo que a veces
+   termina en un intercambio fallido y un rebote al login. Este guard
+   asegura que solo un envío esté en curso a la vez. */
+let gateSubmitInFlight = false;
+
 async function submitModule2faGate() {
+  if (gateSubmitInFlight) return;
   const msg = document.getElementById('sec-msg');
   const codeInput = document.getElementById('module-gate-code');
   if (!codeInput) return;
@@ -1621,6 +1635,7 @@ async function submitModule2faGate() {
     codeInput.focus();
     return;
   }
+  gateSubmitInFlight = true;
   const btn = document.getElementById('module-gate-btn');
   const mod = pendingGateMod;
   const meta = MODULE_META[mod] || { label: mod, accent: '#4f46e5' };
@@ -1659,6 +1674,7 @@ async function submitModule2faGate() {
     btn.disabled = false;
     btn.innerHTML = `<span>Entrar a ${meta.label}</span> <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>`;
     codeInput.select();
+    gateSubmitInFlight = false;
   }
 }
 
