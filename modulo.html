@@ -202,11 +202,22 @@
     box-sizing: border-box;
   }
 
-  /* Columna 1: Panel de Agenda (fijo a la izquierda, 100% alto, scroll interno) */
-  .agenda-panel {
+  /* Columna 1: agenda + sesiones, apiladas, 100% alto, cada una con su scroll */
+  .side-col {
     width: 320px;
     min-width: 320px;
     max-width: 320px;
+    height: 100%;
+    min-height: 0;
+    max-height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    flex-shrink: 0;
+    box-sizing: border-box;
+  }
+  .agenda-panel {
+    width: 100%;
     height: 100%;
     min-height: 0;
     max-height: 100%;
@@ -219,7 +230,7 @@
     flex-direction: column;
     overflow: hidden;
     box-sizing: border-box;
-    flex-shrink: 0;
+    flex: 1 1 auto;
   }
   .agenda-panel__head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; flex-shrink: 0; }
   .agenda-panel h2 { font-size: 15px; font-weight: 800; letter-spacing: -.01em; }
@@ -247,6 +258,46 @@
   .agenda-item__modality { display: inline-flex; align-items: center; gap: 4px; font-size: 10.5px; font-weight: 600; color: var(--primary); text-decoration: none; }
   .agenda-item__modality:hover { text-decoration: underline; }
   .agenda-empty, .agenda-error, .agenda-loading { font-size: 12px; color: var(--text-muted); padding: 6px 2px; }
+
+  /* Panel de "Mis sesiones", apilado debajo de la agenda dentro de .side-col */
+  .sessions-panel {
+    width: 100%;
+    flex: 0 0 auto;
+    max-height: 260px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    padding: 16px 16px 14px 16px;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+  }
+  .sessions-panel__head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; flex-shrink: 0; }
+  .sessions-panel h2 { font-size: 15px; font-weight: 800; letter-spacing: -.01em; }
+  #sessions-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+    margin-bottom: 10px;
+  }
+  .session-row { display: flex; gap: 9px; align-items: flex-start; padding: 8px 9px; border-radius: 10px; background: var(--gray-bg); }
+  .session-row + .session-row { margin-top: 6px; }
+  .session-row__dot { width: 8px; height: 8px; border-radius: 50%; background: #10b981; margin-top: 5px; flex-shrink: 0; }
+  .session-row__dot.other { background: #9ca3af; }
+  .session-row__info { flex: 1; min-width: 0; }
+  .session-row__badge { font-size: 10px; font-weight: 700; color: var(--primary); }
+  .session-row__meta { font-size: 10.5px; color: var(--text-muted); margin-top: 2px; line-height: 1.4; }
+  .sessions-empty, .sessions-error, .sessions-loading { font-size: 12px; color: var(--text-muted); padding: 4px 2px; }
+  .sessions-panel__btn {
+    width: 100%; flex-shrink: 0; padding: 9px; border: 1px solid #fecaca; background: #fef2f2; color: #b91c1c;
+    border-radius: 10px; font-size: 12.5px; font-weight: 700; cursor: pointer; font-family: inherit;
+    transition: background .15s ease;
+  }
+  .sessions-panel__btn:hover { background: #fee2e2; }
+  .sessions-panel__btn:disabled { opacity: .5; cursor: not-allowed; }
 
   /* Columna 2: Contenedor de Módulos (toma el resto del ancho, 100% alto, scroll interno) */
   #modules-container {
@@ -612,8 +663,18 @@
       width: 100%;
       flex: 1 1 auto;
     }
-    .agenda-panel {
+    .side-col {
       order: 2;
+      width: 100%;
+      min-width: 0;
+      max-width: 100%;
+      height: auto;
+      min-height: auto;
+      max-height: none;
+      flex: none;
+      gap: 14px;
+    }
+    .agenda-panel {
       width: 100%;
       min-width: 0;
       max-width: 100%;
@@ -632,6 +693,15 @@
       overflow-y: auto;
       overscroll-behavior: auto;
       padding-right: 4px;
+    }
+    .sessions-panel {
+      width: 100%;
+      max-height: none;
+      padding: 16px 14px;
+      border-radius: 14px;
+    }
+    #sessions-body {
+      max-height: 220px;
     }
     footer {
       margin-top: auto;
@@ -733,10 +803,17 @@
 
   <main>
     <div class="section-wrap hub-layout">
-      <div class="agenda-panel">
-        <div class="agenda-panel__head"><h2>Mi agenda</h2></div>
-        <div class="agenda-panel__today" id="agenda-today">—</div>
-        <div id="agenda-body"><p class="agenda-loading">Cargando agenda…</p></div>
+      <div class="side-col">
+        <div class="agenda-panel">
+          <div class="agenda-panel__head"><h2>Mi agenda</h2></div>
+          <div class="agenda-panel__today" id="agenda-today">—</div>
+          <div id="agenda-body"><p class="agenda-loading">Cargando agenda…</p></div>
+        </div>
+        <div class="sessions-panel">
+          <div class="sessions-panel__head"><h2>Mis sesiones</h2></div>
+          <div id="sessions-body"><p class="sessions-loading">Cargando…</p></div>
+          <button type="button" class="sessions-panel__btn" id="close-others-btn" style="display:none">Cerrar las demás sesiones</button>
+        </div>
       </div>
       <div id="modules-container" class="loading">
         <div class="modules">
@@ -1129,6 +1206,68 @@ async function loadAgenda() {
   }
 }
 
+// ─── Panel "Mis sesiones" ────────────────────────────────────────────────
+/* Casi siempre va a mostrar 1 sola fila: el login normal ya cierra
+   cualquier otra sesión de la misma cuenta (revokeOtherSessions en el
+   backend). El botón de "cerrar las demás" queda como respaldo visible
+   para cuando el usuario quiere confirmarlo él mismo, o si quedó una
+   sesión fantasma de un dispositivo que no pudo cerrar sesión limpio. */
+function sessionDeviceLabel(userAgent) {
+  const ua = userAgent || '';
+  if (/Mobi|Android/i.test(ua)) return 'Dispositivo móvil';
+  if (/Windows/i.test(ua)) return 'Windows';
+  if (/Macintosh|Mac OS/i.test(ua)) return 'Mac';
+  if (/Linux/i.test(ua)) return 'Linux';
+  return 'Dispositivo desconocido';
+}
+
+function formatSessionDateTime(iso) {
+  const d = new Date(iso);
+  const fecha = `${d.getDate()} de ${MONTH_LABELS[d.getMonth()]}`;
+  const hora = d.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' });
+  return `${fecha}, ${hora}`;
+}
+
+function sessionRowHtml(s) {
+  return `
+    <div class="session-row">
+      <span class="session-row__dot ${s.current ? '' : 'other'}"></span>
+      <div class="session-row__info">
+        <span class="session-row__badge">${s.current ? 'Esta sesión' : esc(sessionDeviceLabel(s.user_agent))}</span>
+        <div class="session-row__meta">Inició el ${formatSessionDateTime(s.created_at)}</div>
+        <div class="session-row__meta">IP ${esc(s.ip_address || '—')}</div>
+      </div>
+    </div>`;
+}
+
+async function loadSessions() {
+  const body = document.getElementById('sessions-body');
+  const btn = document.getElementById('close-others-btn');
+  try {
+    const data = await secFetch('/api/auth/sessions');
+    const sessions = data.sessions || [];
+    body.innerHTML = sessions.map(sessionRowHtml).join('') || '<p class="sessions-empty">No hay sesiones activas.</p>';
+    btn.style.display = sessions.length > 1 ? 'block' : 'none';
+  } catch (err) {
+    body.innerHTML = '<p class="sessions-error">No se pudieron cargar tus sesiones.</p>';
+    btn.style.display = 'none';
+  }
+}
+
+document.getElementById('close-others-btn').addEventListener('click', async () => {
+  const btn = document.getElementById('close-others-btn');
+  btn.disabled = true;
+  btn.textContent = 'Cerrando…';
+  try {
+    await secFetch('/api/auth/sessions/close-others', { method: 'POST' });
+    await loadSessions();
+  } catch (err) {
+    btn.disabled = false;
+  } finally {
+    btn.textContent = 'Cerrar las demás sesiones';
+  }
+});
+
 // ─── Notificador temporal de reunión (esquina inferior derecha) ────────────
 let activeMeetingsList = [];
 let currentAlertTimeout = null;
@@ -1471,6 +1610,7 @@ async function checkMe(token) {
   }
 
   loadAgenda();
+  loadSessions();
 
   try {
     await checkMe(token);
