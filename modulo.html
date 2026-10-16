@@ -123,14 +123,6 @@
   }
   .sec-modal__head h3 { font-size: 16px; font-weight: 800; }
   .sec-modal__close { background: none; border: none; font-size: 22px; cursor: pointer; color: var(--text-muted); line-height: 1; }
-  .sec-tabs { display: flex; border-bottom: 1px solid var(--border); padding: 0 24px; }
-  .sec-tab {
-    flex: 1; padding: 11px 4px; background: none; border: none; cursor: pointer; font-family: inherit;
-    font-size: 12.5px; font-weight: 700; color: var(--text-muted); border-bottom: 2px solid transparent;
-    transition: color .15s, border-color .15s;
-  }
-  .sec-tab:hover { color: var(--text); }
-  .sec-tab.active { color: var(--primary); border-bottom-color: var(--primary); }
   .sec-modal__body { padding: 22px 24px; }
   .sec-modal__body .field { position: relative; margin-bottom: 14px; }
   .sec-modal__body input {
@@ -578,6 +570,44 @@
     width: 100%;
   }
 
+  /* Aviso de sesiones concurrentes: fijo, aparece solo (sin reservar
+     espacio en el layout) cuando hay más de 1 sesión activa a la vez. */
+  .multi-session-alert {
+    position: fixed;
+    top: 76px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-12px);
+    z-index: 400;
+    width: min(92vw, 420px);
+    background: var(--card-bg);
+    border: 1px solid #fecaca;
+    border-left: 4px solid var(--danger);
+    border-radius: 14px;
+    box-shadow: var(--shadow-hover);
+    padding: 16px 18px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .2s ease, transform .2s ease;
+  }
+  .multi-session-alert.show { opacity: 1; pointer-events: auto; transform: translateX(-50%) translateY(0); }
+  .multi-session-alert__head { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 12px; }
+  .multi-session-alert__icon {
+    width: 34px; height: 34px; border-radius: 9px; background: #fef2f2; color: var(--danger);
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .multi-session-alert__title { font-size: 13.5px; font-weight: 800; color: #111827; }
+  .multi-session-alert__desc { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; line-height: 1.4; }
+  .multi-session-alert__close { background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 18px; line-height: 1; flex-shrink: 0; }
+  .multi-session-alert__list { margin-bottom: 12px; display: flex; flex-direction: column; gap: 6px; }
+  .multi-session-alert__actions { display: flex; }
+  .multi-session-alert__btn {
+    width: 100%; padding: 10px; border-radius: 9px; font-size: 12.5px; font-weight: 700;
+    cursor: pointer; font-family: inherit; border: none; transition: background .15s;
+  }
+  .multi-session-alert__btn--danger { background: var(--danger); color: #fff; }
+  .multi-session-alert__btn--danger:hover { background: #b91c1c; }
+  .multi-session-alert__btn--danger:disabled { opacity: .6; cursor: not-allowed; }
+
   @media (max-width: 860px) {
     html { height: auto; min-height: 100%; }
     body {
@@ -727,10 +757,6 @@
         <h3>Verificación en dos pasos</h3>
         <button class="sec-modal__close" id="security-close-btn">&times;</button>
       </div>
-      <div class="sec-tabs" id="security-tabs" style="display:none">
-        <button type="button" class="sec-tab active" id="sec-tab-totp" data-tab="totp">Verificación en dos pasos</button>
-        <button type="button" class="sec-tab" id="sec-tab-sessions" data-tab="sessions">Sesiones activas</button>
-      </div>
       <div class="sec-modal__body" id="security-modal-body">
         <p style="color:var(--text-muted);font-size:13px">Cargando…</p>
       </div>
@@ -806,6 +832,24 @@
       </div>
     </div>
     <div class="meeting-alert__progress"><div class="meeting-alert__progress-bar" id="mat-progress"></div></div>
+  </aside>
+
+  <!-- Aviso de sesiones concurrentes — solo visible si hay más de 1 sesión activa -->
+  <aside id="multi-session-alert" class="multi-session-alert" role="alert" aria-live="assertive">
+    <div class="multi-session-alert__head">
+      <div class="multi-session-alert__icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+      </div>
+      <div style="min-width:0;flex:1">
+        <div class="multi-session-alert__title" id="msa-title">—</div>
+        <div class="multi-session-alert__desc">Si no reconoces el otro acceso, cierra las demás sesiones ahora.</div>
+      </div>
+      <button type="button" class="multi-session-alert__close" id="msa-close-btn" aria-label="Cerrar aviso">&times;</button>
+    </div>
+    <div class="multi-session-alert__list" id="msa-list"></div>
+    <div class="multi-session-alert__actions">
+      <button type="button" class="multi-session-alert__btn multi-session-alert__btn--danger" id="msa-close-others-btn">Cerrar las demás sesiones</button>
+    </div>
   </aside>
 
 <script>
@@ -934,14 +978,12 @@ document.getElementById('security-close-btn').addEventListener('click', closeSec
 securityModal.addEventListener('click', (e) => { if (e.target === securityModal) closeSecurityModal(); });
 
 function openSecurityModal() {
-  document.getElementById('security-tabs').style.display = 'flex';
   securityModal.classList.add('open');
-  switchSecurityTab('totp');
+  renderSecurityStatus();
 }
 function closeSecurityModal() {
   securityModal.classList.remove('open');
   pendingGateMod = null;
-  document.getElementById('security-tabs').style.display = 'none';
   const modalTitle = document.querySelector('#security-modal .sec-modal__head h3');
   if (modalTitle) modalTitle.textContent = 'Verificación en dos pasos';
 }
@@ -1201,53 +1243,54 @@ function sessionRowHtml(s) {
     </div>`;
 }
 
-async function renderSessionsTab() {
-  securityBody.innerHTML = `<p style="color:var(--text-muted);font-size:13px">Cargando…</p>`;
+/* ============================================================
+   Aviso de sesiones concurrentes — flotante, se muestra SOLO
+   cuando la cuenta tiene más de 1 sesión activa a la vez (señal de
+   que alguien más podría haber entrado). No ocupa espacio ni
+   requiere abrir nada cuando todo está normal (1 sola sesión).
+   Se revisa al cargar la página y en cada heartbeat (cada 20s), así
+   que si aparece una segunda sesión mientras el hub sigue abierto,
+   el aviso sale solo sin recargar.
+   ============================================================ */
+let sessionAlertDismissed = false;
+
+async function checkMultiSession() {
+  if (sessionAlertDismissed) return;
+  const alertEl = document.getElementById('multi-session-alert');
+  if (!alertEl) return;
   try {
     const data = await secFetch('/api/auth/sessions');
     const sessions = data.sessions || [];
-    const rowsHtml = sessions.map(sessionRowHtml).join('')
-      || '<p style="color:var(--text-muted);font-size:12.5px">No hay sesiones activas.</p>';
-    securityBody.innerHTML = `
-      <p style="font-size:12.5px;color:var(--text-muted);margin-bottom:14px">
-        Sesiones activas de tu cuenta en los paneles de QUBIRA.
-      </p>
-      <div style="margin-bottom:16px">${rowsHtml}</div>
-      ${sessions.length > 1 ? '<button class="sec-btn sec-btn-danger" id="sec-close-others-btn">Cerrar las demás sesiones</button>' : ''}
-      <div class="sec-msg" id="sec-msg"></div>
-    `;
-    document.getElementById('sec-close-others-btn')?.addEventListener('click', closeOtherSessions);
-  } catch (err) {
-    securityBody.innerHTML = `<p style="color:var(--danger);font-size:13px">${err.message || 'No se pudieron cargar tus sesiones.'}</p>`;
-  }
+    if (sessions.length <= 1) {
+      alertEl.classList.remove('show');
+      return;
+    }
+    const others = sessions.filter(s => !s.current);
+    document.getElementById('msa-title').textContent =
+      `Tienes ${sessions.length} sesiones activas al mismo tiempo`;
+    document.getElementById('msa-list').innerHTML = others.map(sessionRowHtml).join('');
+    alertEl.classList.add('show');
+  } catch (_) { /* sin red — se reintenta en el próximo heartbeat */ }
 }
 
-async function closeOtherSessions() {
-  const btn = document.getElementById('sec-close-others-btn');
+document.getElementById('msa-close-btn').addEventListener('click', () => {
+  sessionAlertDismissed = true;
+  document.getElementById('multi-session-alert').classList.remove('show');
+});
+
+document.getElementById('msa-close-others-btn').addEventListener('click', async () => {
+  const btn = document.getElementById('msa-close-others-btn');
   btn.disabled = true;
   btn.textContent = 'Cerrando…';
   try {
     await secFetch('/api/auth/sessions/close-others', { method: 'POST' });
-    await renderSessionsTab();
-  } catch (err) {
-    const msg = document.getElementById('sec-msg');
-    if (msg) { msg.textContent = err.message || 'No se pudo cerrar las sesiones.'; msg.className = 'sec-msg error'; }
+    document.getElementById('multi-session-alert').classList.remove('show');
+  } catch (_) {
     btn.disabled = false;
+  } finally {
     btn.textContent = 'Cerrar las demás sesiones';
   }
-}
-
-let securityActiveTab = 'totp';
-function switchSecurityTab(tab) {
-  securityActiveTab = tab;
-  document.querySelectorAll('#security-tabs .sec-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
-  const modalTitle = document.querySelector('#security-modal .sec-modal__head h3');
-  if (modalTitle) modalTitle.textContent = tab === 'sessions' ? 'Sesiones activas' : 'Verificación en dos pasos';
-  if (tab === 'sessions') renderSessionsTab();
-  else renderSecurityStatus();
-}
-document.getElementById('sec-tab-totp').addEventListener('click', () => switchSecurityTab('totp'));
-document.getElementById('sec-tab-sessions').addEventListener('click', () => switchSecurityTab('sessions'));
+});
 
 // ─── Notificador temporal de reunión (esquina inferior derecha) ────────────
 let activeMeetingsList = [];
@@ -1649,6 +1692,7 @@ async function checkMe(token) {
   }
 
   loadAgenda();
+  checkMultiSession();
 
   try {
     await checkMe(token);
@@ -1720,6 +1764,7 @@ async function checkMe(token) {
     const token = localStorage.getItem('qubira_token');
     if (!token) return;
     try { await checkMe(token); } catch (_) { /* sin red — se reintenta en el próximo tick */ }
+    checkMultiSession();
   }
 
   function tick() {
