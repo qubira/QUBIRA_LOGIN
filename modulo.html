@@ -910,7 +910,7 @@ const ICONS = {
 const MODULE_META = {
   TI:        { label: 'OTI',        desc: 'Proyectos técnicos, tecnologías y cronogramas.', icon: ICONS.cpu,       accent: '#1d4ed8', accentLight: '#dbeafe', group: 'ops' },
   ADG:       { label: 'ADG',        desc: 'Aprobación y administración de proyectos.',       icon: ICONS.clipboard, accent: '#6d28d9', accentLight: '#ede9fe', group: 'ops' },
-  RRHH:      { label: 'RR. HH.',    desc: 'Personal, contratos, nómina y reclutamiento.',    icon: ICONS.users,     accent: '#047857', accentLight: '#d1fae5', group: 'ops' },
+  RRHH:      { label: 'ORH',    desc: 'Oficina de Recursos Humanos: personal, contratos, nómina y reclutamiento.',    icon: ICONS.users,     accent: '#047857', accentLight: '#d1fae5', group: 'ops' },
   SOPORTE:   { label: 'OCOS',       desc: 'Oficina de Centro de Operaciones y Servicios: mesa de ayuda y soporte técnico.', icon: ICONS.headset, accent: '#b45309', accentLight: '#fef3c7', group: 'ops' },
   OCOS:      { label: 'OCOS',       desc: 'Oficina de Centro de Operaciones y Servicios: mesa de ayuda y soporte técnico.', icon: ICONS.headset, accent: '#b45309', accentLight: '#fef3c7', group: 'ops' },
   COMERCIAL: { label: 'ODN',        desc: 'Oficina Desarrollo de Negocios: catálogo de productos disponibles para venta o alquiler.', icon: ICONS.cart, accent: '#0f766e', accentLight: '#ecfdf5', group: 'ops' },
@@ -1496,13 +1496,13 @@ function moduleCardHtml(mod) {
 
 function renderModules(authorizedModules) {
   const container = document.getElementById('modules-container');
-  // Mapear siglas históricas a las siglas oficiales: CG -> OPP, COMERCIAL -> ODN, SOPORTE -> OCOS, ACM -> OCM, DJ -> ODACL
+  // Mapear siglas históricas a las siglas oficiales: CG -> OPP, COMERCIAL -> ODN, SOPORTE -> OCOS, ACM -> OCM, DJ -> ODACL; ORH abre el panel RRHH (etiqueta ORH)
   const mapped = (authorizedModules || []).map(m =>
     m === 'CG' ? 'OPP' :
     (m === 'COMERCIAL' ? 'ODN' :
     (m === 'SOPORTE' ? 'OCOS' :
     (m === 'ACM' ? 'OCM' :
-    (m === 'DJ' ? 'ODACL' : m))))
+    (m === 'DJ' ? 'ODACL' : (m === 'ORH' ? 'RRHH' : m)))))
   );
   const uniqueModules = [...new Set(mapped)];
 
