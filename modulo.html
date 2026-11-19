@@ -223,6 +223,206 @@
   .sec-tile--primary svg, .sec-tile--primary span { color: rgba(255,255,255,.85); }
   .sec-tile--primary:hover:not(:disabled) { background: var(--primary-dark); border-color: var(--primary-dark); }
   @media (max-width: 420px) { .sec-tiles { grid-template-columns: 1fr; } }
+
+  /* ============ Centro de seguridad (modal amplio con pestañas) ============ */
+  body:has(.sec-modal-overlay.open) .multi-session-alert { display: none; }
+  .sec-modal--wide { max-width: 1000px; height: min(690px, 92vh); max-height: 92vh; }
+  .sec-modal--wide .sec-modal__head { display: none; }
+  .sec-modal--wide .sec-modal__body { padding: 0; overflow: hidden; display: flex; }
+  .sc { display: grid; grid-template-columns: 290px 1fr; width: 100%; height: 100%; min-height: 0; }
+
+  .sc-side {
+    position: relative; overflow: hidden auto; padding: 24px 18px 18px;
+    background: linear-gradient(165deg, #0f172a 0%, #1e1b4b 62%, #312e81 100%);
+    color: #e2e8f0; display: flex; flex-direction: column; gap: 22px;
+  }
+  .sc-side::before {
+    content: ''; position: absolute; width: 320px; height: 320px; border-radius: 50%; right: -160px; top: -140px;
+    background: radial-gradient(circle, rgba(129,140,248,.35), transparent 65%); pointer-events: none;
+  }
+  .sc-brand { position: relative; }
+  .sc-brand small { font-size: 10px; font-weight: 800; letter-spacing: .14em; color: #a5b4fc; text-transform: uppercase; }
+  .sc-brand strong { display: block; font-size: 15px; font-weight: 700; color: #fff; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  .sc-score {
+    position: relative; display: flex; align-items: center; gap: 14px; padding: 14px;
+    border-radius: 16px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1);
+  }
+  .sc-ring { position: relative; width: 84px; height: 84px; flex-shrink: 0; }
+  .sc-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+  .sc-ring circle { fill: none; stroke-width: 8; }
+  .sc-ring .bg { stroke: rgba(255,255,255,.12); }
+  .sc-ring .fg { stroke-linecap: round; transition: stroke-dashoffset 1s cubic-bezier(.2,.8,.2,1), stroke .4s; }
+  .sc-ring__val { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .sc-ring__val b { font-size: 22px; font-weight: 800; color: #fff; line-height: 1; }
+  .sc-ring__val span { font-size: 9px; color: #a5b4fc; font-weight: 700; letter-spacing: .06em; margin-top: 2px; }
+  .sc-score__txt strong { display: block; font-size: 13.5px; color: #fff; font-weight: 800; }
+  .sc-score__txt p { font-size: 11.5px; color: #cbd5e1; line-height: 1.45; margin-top: 3px; }
+
+  .sc-nav { position: relative; display: flex; flex-direction: column; gap: 4px; }
+  .sc-nav__label { font-size: 10px; font-weight: 800; letter-spacing: .12em; color: #818cf8; text-transform: uppercase; margin: 0 0 6px 10px; }
+  .sc-nav button {
+    position: relative; display: flex; align-items: center; gap: 11px; width: 100%; text-align: left;
+    padding: 10px 12px; border-radius: 11px; border: none; background: transparent; color: #cbd5e1;
+    font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; transition: background .15s, color .15s;
+  }
+  .sc-nav button svg { width: 17px; height: 17px; flex-shrink: 0; opacity: .85; }
+  .sc-nav button:hover { background: rgba(255,255,255,.06); color: #fff; }
+  .sc-nav button.active { background: rgba(255,255,255,.12); color: #fff; }
+  .sc-nav button.active::before {
+    content: ''; position: absolute; left: -18px; top: 9px; bottom: 9px; width: 4px; border-radius: 0 4px 4px 0; background: #818cf8;
+  }
+  .sc-nav__txt { flex: 1; min-width: 0; }
+  .sc-dot { display: block; width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+  .sc-dot--ok { background: #34d399; box-shadow: 0 0 0 3px rgba(52,211,153,.18); }
+  .sc-dot--warn { background: #fbbf24; box-shadow: 0 0 0 3px rgba(251,191,36,.18); }
+  .sc-count { font-size: 10.5px; font-weight: 800; padding: 1px 7px; border-radius: 999px; background: rgba(255,255,255,.14); color: #fff; }
+  .sc-side__foot { margin-top: auto; position: relative; font-size: 11px; color: #94a3b8; line-height: 1.5; display: flex; gap: 8px; }
+  .sc-side__foot svg { width: 14px; height: 14px; flex-shrink: 0; margin-top: 1px; color: #818cf8; }
+
+  .sc-main { display: flex; flex-direction: column; min-width: 0; min-height: 0; background: #f8fafc; }
+  .sc-main__head {
+    display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;
+    padding: 22px 28px 18px; background: #fff; border-bottom: 1px solid var(--border); flex-shrink: 0;
+  }
+  .sc-main__head h2 { font-size: 19px; font-weight: 800; letter-spacing: -.015em; }
+  .sc-main__head p { font-size: 12.5px; color: var(--text-muted); margin-top: 3px; }
+  .sc-main__body { flex: 1; min-height: 0; overflow-y: auto; padding: 22px 28px 28px; }
+  .sc-view { animation: scIn .28s cubic-bezier(.2,.8,.2,1); }
+  @keyframes scIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  .sc-view > * + * { margin-top: 16px; }
+  .sc-h { font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--text-muted); margin: 22px 0 10px; }
+
+  .sc-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .sc-stat {
+    position: relative; overflow: hidden; text-align: left; padding: 16px; border-radius: 14px; cursor: pointer;
+    background: #fff; border: 1px solid var(--border); font-family: inherit; color: var(--text);
+    transition: transform .18s, box-shadow .18s, border-color .18s;
+  }
+  .sc-stat:hover { transform: translateY(-3px); box-shadow: 0 12px 24px -12px rgba(15,23,42,.25); border-color: #c7d2fe; }
+  .sc-stat .sec-ico { margin-bottom: 12px; }
+  .sc-stat b { display: block; font-size: 22px; font-weight: 800; letter-spacing: -.02em; line-height: 1.1; }
+  .sc-stat span { display: block; font-size: 12px; color: var(--text-muted); margin-top: 3px; }
+  .sc-stat i { position: absolute; top: 16px; right: 16px; font-style: normal; color: #c7d2fe; font-size: 16px; transition: transform .18s, color .18s; }
+  .sc-stat:hover i { transform: translateX(3px); color: var(--primary); }
+
+  .sc-reco { display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 14px; background: #fff; border: 1px solid var(--border); }
+  .sc-reco + .sc-reco { margin-top: 8px; }
+  .sc-reco__txt { flex: 1; min-width: 0; }
+  .sc-reco__txt strong { font-size: 13.5px; font-weight: 700; }
+  .sc-reco__txt p { font-size: 12px; color: var(--text-muted); margin-top: 2px; line-height: 1.45; }
+  .sc-btn-sm {
+    flex-shrink: 0; height: 36px; padding: 0 14px; border-radius: 9px; border: none; cursor: pointer;
+    background: var(--primary); color: #fff; font-family: inherit; font-size: 12.5px; font-weight: 700; transition: background .15s;
+  }
+  .sc-btn-sm:hover { background: var(--primary-dark); }
+  .sc-btn-sm:disabled { opacity: .6; cursor: not-allowed; }
+  .sc-btn-sm--ghost { background: #fff; color: var(--text); border: 1px solid var(--border); }
+  .sc-btn-sm--ghost:hover { background: var(--gray-bg); }
+  .sc-btn-sm--danger { background: #fef2f2; color: var(--danger); border: 1px solid #fecaca; }
+  .sc-btn-sm--danger:hover { background: var(--danger); color: #fff; }
+
+  .sc-allgood {
+    display: flex; align-items: center; gap: 14px; padding: 16px 18px; border-radius: 14px;
+    background: linear-gradient(120deg, #ecfdf5, #f0fdfa); border: 1px solid #a7f3d0; color: #065f46;
+  }
+  .sc-allgood strong { font-size: 14px; }
+  .sc-allgood p { font-size: 12px; color: #047857; margin-top: 2px; }
+
+  .sc-hero {
+    display: flex; align-items: center; gap: 18px; padding: 20px 22px; border-radius: 16px; border: 1px solid;
+  }
+  .sc-hero--ok { background: linear-gradient(120deg, #ecfdf5, #fff 75%); border-color: #a7f3d0; }
+  .sc-hero--warn { background: linear-gradient(120deg, #fffbeb, #fff 75%); border-color: #fde68a; }
+  .sc-hero .sec-ico { width: 54px; height: 54px; border-radius: 14px; }
+  .sc-hero .sec-ico svg { width: 26px; height: 26px; }
+  .sc-hero__txt { flex: 1; min-width: 0; }
+  .sc-hero__txt h3 { font-size: 16px; font-weight: 800; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .sc-hero__txt p { font-size: 12.5px; color: var(--text-muted); margin-top: 4px; line-height: 1.55; }
+
+  .sc-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .sc-step { padding: 16px; border-radius: 14px; background: #fff; border: 1px solid var(--border); }
+  .sc-step em {
+    display: inline-flex; width: 26px; height: 26px; border-radius: 8px; align-items: center; justify-content: center;
+    font-style: normal; font-size: 12px; font-weight: 800; background: var(--primary-light); color: var(--primary); margin-bottom: 10px;
+  }
+  .sc-step strong { display: block; font-size: 13px; font-weight: 700; }
+  .sc-step p { font-size: 11.5px; color: var(--text-muted); line-height: 1.45; margin-top: 3px; }
+
+  .sc-panel { padding: 18px; border-radius: 14px; background: #fff; border: 1px solid var(--border); }
+  .sc-panel h4 { font-size: 14px; font-weight: 800; }
+  .sc-panel > p { font-size: 12px; color: var(--text-muted); margin: 3px 0 14px; line-height: 1.5; }
+  .sc-panel--danger { border-color: #fecaca; background: linear-gradient(180deg, #fff, #fffafa); }
+  .sc-row { display: flex; gap: 10px; align-items: flex-start; }
+  .sc-row .field { flex: 1; margin-bottom: 0 !important; }
+  .sc-row .sec-btn { width: auto; padding: 0 18px; white-space: nowrap; height: 44px; }
+
+  .sc-devgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
+  .sc-dev {
+    position: relative; padding: 16px; border-radius: 14px; background: #fff; border: 1px solid var(--border);
+    display: flex; flex-direction: column; gap: 12px; transition: box-shadow .18s, transform .18s, border-color .18s;
+    animation: scIn .3s cubic-bezier(.2,.8,.2,1) both;
+  }
+  .sc-dev:hover { transform: translateY(-2px); box-shadow: 0 12px 24px -14px rgba(15,23,42,.3); border-color: #c7d2fe; }
+  .sc-dev__top { display: flex; align-items: center; gap: 12px; }
+  .sc-dev__name { font-size: 13.5px; font-weight: 700; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sc-dev__kind { font-size: 11px; color: var(--text-muted); }
+  .sc-dev__meta { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding-top: 12px; border-top: 1px dashed var(--border); }
+  .sc-dev__meta small { display: block; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: #9ca3af; }
+  .sc-dev__meta span { font-size: 11.5px; font-weight: 600; color: var(--text); }
+  .sc-dev .sec-link-danger { position: absolute; top: 10px; right: 10px; }
+  .sc-dev--add {
+    align-items: center; justify-content: center; text-align: center; cursor: pointer; min-height: 150px;
+    border: 2px dashed #c7d2fe; background: #f5f7ff; color: var(--primary); font-family: inherit;
+  }
+  .sc-dev--add:hover { background: var(--primary-light); border-color: var(--primary); }
+  .sc-dev--add svg { width: 26px; height: 26px; }
+  .sc-dev--add strong { font-size: 13px; }
+  .sc-dev--add span { font-size: 11.5px; color: var(--text-muted); }
+
+  .sc-form { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .sc-form .field { margin-bottom: 0 !important; }
+  .sc-form .full { grid-column: 1 / -1; }
+
+  .sc-sess { display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 14px; background: #fff; border: 1px solid var(--border); }
+  .sc-sess + .sc-sess { margin-top: 8px; }
+  .sc-sess--current { border-color: #a7f3d0; background: linear-gradient(120deg, #f0fdf4, #fff 70%); }
+  .sc-sess__info { flex: 1; min-width: 0; }
+  .sc-sess__info strong { font-size: 13.5px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+  .sc-sess__info p { font-size: 11.5px; color: var(--text-muted); margin-top: 3px; }
+  .sc-live { width: 8px; height: 8px; border-radius: 50%; background: #10b981; position: relative; }
+  .sc-live::after { content: ''; position: absolute; inset: -4px; border-radius: 50%; border: 2px solid #10b981; animation: scPulse 1.6s ease-out infinite; }
+  @keyframes scPulse { from { opacity: .8; transform: scale(.6); } to { opacity: 0; transform: scale(1.6); } }
+
+  .sc-setup { display: grid; grid-template-columns: 240px 1fr; gap: 22px; align-items: start; }
+  .sc-qr { padding: 16px; border-radius: 16px; background: #fff; border: 1px solid var(--border); text-align: center; }
+  .sc-qr img { width: 200px; height: 200px; display: block; margin: 0 auto; }
+  .sc-qr code { display: block; margin-top: 10px; font-size: 11.5px; font-weight: 700; letter-spacing: .04em; word-break: break-all; user-select: all; background: var(--gray-bg); padding: 8px; border-radius: 8px; }
+  .sc-qr small { display: block; margin-top: 8px; font-size: 10.5px; color: var(--text-muted); }
+  .sec-modal:not(.sec-modal--wide) .sc-setup { grid-template-columns: 1fr; }
+  .sec-modal:not(.sec-modal--wide) .sc-steps { grid-template-columns: 1fr; }
+
+  .sc-skel { height: 90px; border-radius: 14px; background: linear-gradient(90deg, #eef2f7 25%, #f8fafc 50%, #eef2f7 75%); background-size: 200% 100%; animation: scShimmer 1.2s infinite; }
+  .sc-skel + .sc-skel { margin-top: 12px; }
+  @keyframes scShimmer { to { background-position: -200% 0; } }
+
+  @media (max-width: 780px) {
+    .sec-modal--wide { height: 94vh; max-height: 94vh; }
+    .sc { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
+    .sc-side, .sc-main { min-width: 0; }
+    .sc-side { padding: 16px; gap: 12px; overflow: visible; }
+    .sc-side__foot, .sc-nav__label, .sc-score__txt p { display: none; }
+    .sc-score { padding: 10px; }
+    .sc-ring { width: 60px; height: 60px; }
+    .sc-ring__val b { font-size: 16px; }
+    .sc-nav { flex-direction: row; overflow-x: auto; gap: 6px; }
+    .sc-nav button { width: auto; white-space: nowrap; padding: 8px 12px; }
+    .sc-nav button.active::before { display: none; }
+    .sc-main__head, .sc-main__body { padding-left: 18px; padding-right: 18px; }
+    .sc-stats, .sc-steps, .sc-setup, .sc-form { grid-template-columns: 1fr; }
+    .sc-row { flex-direction: column; align-items: stretch; }
+    .sc-row .sec-btn { width: 100%; }
+  }
   .sec-modal__body input:focus { background: #fff; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-light); }
   .sec-btn {
     width: 100%; height: 46px; border: none; border-radius: 10px;
@@ -1075,83 +1275,14 @@ async function secFetch(path, opts = {}) {
 const securityModal = document.getElementById('security-modal');
 const securityBody   = document.getElementById('security-modal-body');
 
-document.getElementById('security-btn').addEventListener('click', openSecurityModal);
-document.getElementById('security-close-btn').addEventListener('click', closeSecurityModal);
-securityModal.addEventListener('click', (e) => { if (e.target === securityModal) closeSecurityModal(); });
-
-function openSecurityModal() {
-  const modalTitle = document.querySelector('#security-modal .sec-modal__head h3');
-  if (modalTitle) modalTitle.textContent = 'Seguridad de la cuenta';
-  securityModal.classList.add('open');
-  renderSecurityStatus();
-}
-function closeSecurityModal() {
-  securityModal.classList.remove('open');
-  pendingGateMod = null;
-  const modalTitle = document.querySelector('#security-modal .sec-modal__head h3');
-  if (modalTitle) modalTitle.textContent = 'Verificación en dos pasos';
-}
-
-async function renderSecurityStatus() {
-  securityBody.innerHTML = `<p style="color:var(--text-muted);font-size:13px">Cargando…</p>`;
-  try {
-    const data = await secFetch('/api/auth/totp/status');
-    if (data.enabled) {
-      securityBody.innerHTML = `
-        <div class="sec-card">
-          <div class="sec-card__head">
-            <div class="sec-ico sec-ico--ok">${SEC_ICONS.shieldCheck}</div>
-            <div class="sec-card__title">
-              <h4>Verificación en dos pasos</h4>
-              <p>Al iniciar sesión con contraseña también se pide el código de tu app autenticadora.</p>
-            </div>
-            <span class="sec-pill sec-pill--ok">Activada</span>
-          </div>
-          <details class="sec-collapse">
-            <summary>Desactivar verificación</summary>
-            <div class="sec-collapse__body">
-              <p class="sec-hint">Tu cuenta quedará protegida solo por contraseña. Confirma tu contraseña actual para continuar.</p>
-              <div class="field"><input type="password" id="sec-disable-password" placeholder="Contraseña actual" autocomplete="current-password"></div>
-              <button class="sec-btn sec-btn-danger-soft" id="sec-disable-btn">Desactivar verificación en dos pasos</button>
-              <div class="sec-msg" id="sec-msg"></div>
-            </div>
-          </details>
-        </div>
-      `;
-      document.getElementById('sec-disable-btn').addEventListener('click', disableTotp);
-      document.getElementById('sec-disable-password').addEventListener('keydown', (e) => { if (e.key === 'Enter') disableTotp(); });
-    } else {
-      securityBody.innerHTML = `
-        <div class="sec-card">
-          <div class="sec-card__head">
-            <div class="sec-ico sec-ico--warn">${SEC_ICONS.shield}</div>
-            <div class="sec-card__title">
-              <h4>Verificación en dos pasos</h4>
-              <p>Además de tu contraseña, se pedirá un código de 6 dígitos de una app autenticadora (Google Authenticator, Authy, Microsoft Authenticator).</p>
-            </div>
-            <span class="sec-pill sec-pill--warn">Desactivada</span>
-          </div>
-          <div class="sec-card__actions">
-            <button class="sec-btn" id="sec-start-btn">Activar verificación en dos pasos</button>
-            <div class="sec-msg" id="sec-msg"></div>
-          </div>
-        </div>
-      `;
-      document.getElementById('sec-start-btn').addEventListener('click', startTotpSetup);
-    }
-    securityBody.insertAdjacentHTML('beforeend', '<div id="pk-section" class="sec-card"></div>');
-    renderPasskeys(!!data.enabled);
-  } catch (err) {
-    securityBody.innerHTML = `<p style="color:var(--danger);font-size:13px">${err.message || 'No se pudo cargar'}</p>`;
-  }
-}
-
 /* ============================================================
-   Passkeys — registrar el celular (QR) o esta PC (Windows Hello)
-   para entrar desde login.html sin contraseña ni código 2FA.
-   Registrar pide la contraseña (y el 2FA si está activo) para que
-   una sesión robada no pueda agregarse una llave propia.
+   Centro de seguridad — modal amplio con barra lateral (puntaje +
+   navegación) y pestañas: Resumen, 2FA, Passkeys y Sesiones.
+   La compuerta 2FA de módulos (openModule2faGate) reutiliza el mismo
+   modal en su versión angosta: quita la clase sec-modal--wide.
    ============================================================ */
+const secModalBox = securityModal.querySelector('.sec-modal');
+
 const SEC_SVG = (p) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
 const SEC_ICONS = {
   shield:      SEC_SVG('<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>'),
@@ -1159,49 +1290,333 @@ const SEC_ICONS = {
   key:         SEC_SVG('<circle cx="7.5" cy="15.5" r="5.5"/><path d="M21 2l-9.6 9.6"/><path d="M15.5 7.5l3 3L22 7l-3-3"/>'),
   phone:       SEC_SVG('<rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/>'),
   monitor:     SEC_SVG('<rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>'),
+  grid:        SEC_SVG('<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>'),
+  lock:        SEC_SVG('<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>'),
+  plus:        SEC_SVG('<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>'),
+  check:       SEC_SVG('<polyline points="20 6 9 17 4 12"/>'),
+  alert:       SEC_SVG('<path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>'),
 };
 const isPcPasskey = (name) => /\b(pc|windows|hello|laptop|port[aá]til|escritorio|mac)\b/i.test(name || '');
 
-async function renderPasskeys(totpEnabled) {
-  const box = document.getElementById('pk-section');
-  if (!box) return;
-  const head = (pill) => `
-    <div class="sec-card__head">
-      <div class="sec-ico">${SEC_ICONS.key}</div>
-      <div class="sec-card__title">
-        <h4>Passkeys</h4>
-        <p>Entra sin contraseña ni código 2FA usando tu celular (QR + huella) o Windows Hello.</p>
-      </div>
-      ${pill || ''}
+const SEC_TABS = {
+  overview: { label: 'Resumen',                   title: 'Resumen de seguridad',      sub: 'El estado de protección de tu cuenta QUBIRA de un vistazo.', icon: 'grid' },
+  totp:     { label: 'Verificación en dos pasos', title: 'Verificación en dos pasos', sub: 'Un código de tu app autenticadora además de tu contraseña.', icon: 'shield' },
+  passkeys: { label: 'Passkeys',                  title: 'Passkeys',                  sub: 'Ingresa sin contraseña con tu celular o con Windows Hello.', icon: 'key' },
+  sessions: { label: 'Sesiones activas',          title: 'Sesiones activas',          sub: 'Dispositivos que tienen tu cuenta abierta en este momento.', icon: 'monitor' },
+};
+const secState = {
+  tab: 'overview', loaded: false, totp: false, pkSupported: true, passkeys: [], pkError: '',
+  sessionHours: 2, sessions: [], sessError: '',
+};
+
+document.getElementById('security-btn').addEventListener('click', () => openSecurityModal('overview'));
+document.getElementById('security-close-btn').addEventListener('click', closeSecurityModal);
+securityModal.addEventListener('click', (e) => { if (e.target === securityModal) closeSecurityModal(); });
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && securityModal.classList.contains('open')) closeSecurityModal();
+});
+
+function openSecurityModal(tab) {
+  secState.tab = SEC_TABS[tab] ? tab : 'overview';
+  const modalTitle = document.querySelector('#security-modal .sec-modal__head h3');
+  if (modalTitle) modalTitle.textContent = 'Seguridad de la cuenta';
+  secModalBox.classList.add('sec-modal--wide');
+  securityModal.classList.add('open');
+  renderSecurityStatus();
+}
+function closeSecurityModal() {
+  securityModal.classList.remove('open');
+  secModalBox.classList.remove('sec-modal--wide');
+  pendingGateMod = null;
+  const modalTitle = document.querySelector('#security-modal .sec-modal__head h3');
+  if (modalTitle) modalTitle.textContent = 'Verificación en dos pasos';
+}
+
+/* Panel donde se dibuja el contenido: el cuerpo de la pestaña en modo
+   amplio, o el body del modal angosto (compuerta 2FA de módulos). */
+function secPanel() { return document.getElementById('sc-body') || securityBody; }
+
+async function loadSecurityData() {
+  const pkSupported = !!(window.QubiraPasskey && QubiraPasskey.supported());
+  const [t, pk, ss] = await Promise.allSettled([
+    secFetch('/api/auth/totp/status'),
+    pkSupported ? secFetch('/api/auth/passkey/list') : Promise.resolve({ passkeys: [] }),
+    secFetch('/api/auth/sessions'),
+  ]);
+  if (t.status === 'rejected') throw t.reason;
+  secState.totp = !!t.value.enabled;
+  secState.pkSupported = pkSupported;
+  secState.passkeys = pk.status === 'fulfilled' ? (pk.value.passkeys || []) : [];
+  secState.sessionHours = (pk.status === 'fulfilled' && pk.value.session_hours) || 2;
+  secState.pkError = pk.status === 'rejected' ? (pk.reason?.message || 'No se pudieron cargar las passkeys') : '';
+  secState.sessions = ss.status === 'fulfilled' ? (ss.value.sessions || []) : [];
+  secState.sessError = ss.status === 'rejected' ? (ss.reason?.message || 'No se pudieron cargar las sesiones') : '';
+  secState.loaded = true;
+}
+
+function secScore() {
+  let s = 0;
+  if (secState.totp) s += 45;
+  if (secState.passkeys.length) s += 35;
+  if (secState.sessions.length <= 1) s += 20;
+  return s;
+}
+
+function secShellHtml() {
+  const name = (document.getElementById('session-name')?.textContent || '').trim();
+  return `
+    <div class="sc" id="sc-root">
+      <aside class="sc-side">
+        <div class="sc-brand">
+          <small>Centro de seguridad</small>
+          <strong>${esc(name && name !== '—' ? name : 'Tu cuenta')}</strong>
+        </div>
+        <div class="sc-score">
+          <div class="sc-ring">
+            <svg viewBox="0 0 100 100"><circle class="bg" cx="50" cy="50" r="42"/>
+              <circle class="fg" id="sc-ring-fg" cx="50" cy="50" r="42" stroke="#818cf8" stroke-dasharray="263.9" stroke-dashoffset="263.9"/></svg>
+            <div class="sc-ring__val"><b id="sc-score-val">–</b><span>DE 100</span></div>
+          </div>
+          <div class="sc-score__txt"><strong id="sc-score-label">Analizando…</strong><p id="sc-score-hint"></p></div>
+        </div>
+        <nav class="sc-nav">
+          <div class="sc-nav__label">Ajustes</div>
+          ${Object.entries(SEC_TABS).map(([k, t]) => `
+            <button type="button" data-sc-tab="${k}">${SEC_ICONS[t.icon]}<span class="sc-nav__txt">${t.label}</span><span id="sc-badge-${k}"></span></button>`).join('')}
+        </nav>
+        <div class="sc-side__foot">${SEC_ICONS.lock}<span>Toda acción sensible pide tu contraseña actual para confirmar que eres tú.</span></div>
+      </aside>
+      <section class="sc-main">
+        <div class="sc-main__head">
+          <div><h2 id="sc-title"></h2><p id="sc-sub"></p></div>
+          <button type="button" class="sec-modal__close" id="sc-close" aria-label="Cerrar">&times;</button>
+        </div>
+        <div class="sc-main__body" id="sc-body"></div>
+      </section>
     </div>`;
-  box.innerHTML = head() + `<p class="sec-hint" style="margin:12px 0 0">Cargando passkeys…</p>`;
-  if (!window.QubiraPasskey || !QubiraPasskey.supported()) {
-    box.innerHTML = head() + `<p class="sec-hint" style="margin:12px 0 0">Este navegador no soporta passkeys. Usa Chrome o Edge actualizados.</p>`;
-    return;
+}
+
+function updateSecSide() {
+  const score = secScore();
+  const C = 263.9;
+  const fg = document.getElementById('sc-ring-fg');
+  if (fg) {
+    fg.setAttribute('stroke', score >= 80 ? '#34d399' : score >= 45 ? '#818cf8' : '#fbbf24');
+    requestAnimationFrame(() => fg.setAttribute('stroke-dashoffset', String(C * (1 - score / 100))));
+  }
+  const val = document.getElementById('sc-score-val');
+  if (val) {
+    const from = parseInt(val.textContent, 10) || 0;
+    const t0 = performance.now();
+    const step = (t) => {
+      const k = Math.min(1, (t - t0) / 900);
+      val.textContent = Math.round(from + (score - from) * (1 - Math.pow(1 - k, 3)));
+      if (k < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }
+  const [label, hint] = score >= 80 ? ['Protección alta', 'Tu cuenta está bien protegida.']
+    : score >= 45 ? ['Protección media', 'Puedes reforzarla en un par de pasos.']
+    : ['Protección baja', 'Activa la verificación en dos pasos.'];
+  document.getElementById('sc-score-label').textContent = label;
+  document.getElementById('sc-score-hint').textContent = hint;
+
+  const badge = (id, html) => { const el = document.getElementById('sc-badge-' + id); if (el) el.outerHTML = `<span id="sc-badge-${id}">${html}</span>`; };
+  badge('totp', `<span class="sc-dot ${secState.totp ? 'sc-dot--ok' : 'sc-dot--warn'}"></span>`);
+  badge('passkeys', secState.passkeys.length ? `<span class="sc-count">${secState.passkeys.length}</span>` : `<span class="sc-dot sc-dot--warn"></span>`);
+  badge('sessions', `<span class="sc-count" ${secState.sessions.length > 1 ? 'style="background:#f59e0b"' : ''}>${secState.sessions.length || 1}</span>`);
+}
+
+async function renderSecurityStatus(opts) {
+  opts = (opts && !(opts instanceof Event)) ? opts : {};
+  secModalBox.classList.add('sec-modal--wide');
+  if (!document.getElementById('sc-root')) {
+    securityBody.innerHTML = secShellHtml();
+    securityBody.querySelectorAll('[data-sc-tab]').forEach(b => b.addEventListener('click', () => showSecTab(b.dataset.scTab)));
+    document.getElementById('sc-close').addEventListener('click', closeSecurityModal);
+    secState.loaded = false;
+  }
+  if (!secState.loaded) {
+    setSecHeader(secState.tab);
+    document.getElementById('sc-body').innerHTML = '<div class="sc-skel"></div><div class="sc-skel"></div><div class="sc-skel" style="height:140px"></div>';
   }
   try {
-    const data = await secFetch('/api/auth/passkey/list');
-    const list = data.passkeys || [];
-    const fmt = d => d ? new Date(d).toLocaleString('es-PE', { dateStyle: 'medium', timeStyle: 'short' }) : 'nunca';
-    const pill = `<span class="sec-pill ${list.length ? 'sec-pill--ok' : 'sec-pill--neutral'}">${list.length ? list.length + ' registrada' + (list.length > 1 ? 's' : '') : 'Ninguna'}</span>`;
-    box.innerHTML = head(pill) + `
-      ${list.length ? `<div class="sec-devices">${list.map(p => `
-        <div class="sec-device">
-          <div class="sec-device__ico">${isPcPasskey(p.nombre) ? SEC_ICONS.monitor : SEC_ICONS.phone}</div>
-          <div class="sec-device__info">
-            <div class="sec-device__name" title="${esc(p.nombre || 'Passkey')}">${esc(p.nombre || 'Passkey')}</div>
-            <div class="sec-device__meta">Último uso: ${fmt(p.last_used_at)}<br>Creada ${fmt(p.created_at)}</div>
-          </div>
-          <button class="sec-link-danger" data-pk-del="${p.id}">Quitar</button>
-        </div>`).join('')}</div>` : ''}
-      <details class="sec-collapse sec-collapse--accent" ${list.length ? '' : 'open'}>
-        <summary>+ Agregar un dispositivo</summary>
-        <div class="sec-collapse__body">
-          <p class="sec-hint">Confirma tu identidad y elige dónde guardar la passkey. La sesión iniciada con passkey dura ${data.session_hours || 2} horas.</p>
-          <div class="field"><input type="text" id="pk-name" maxlength="60" placeholder="Nombre del dispositivo (ej. Mi celular Samsung)"></div>
-          <div class="field"><input type="password" id="pk-password" placeholder="Contraseña actual" autocomplete="current-password"></div>
-          ${totpEnabled ? `<div class="field"><input type="text" id="pk-code" class="sec-code" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="Código 2FA (6 dígitos)"></div>` : ''}
-          <div class="sec-tiles">
+    await loadSecurityData();
+  } catch (err) {
+    document.getElementById('sc-body').innerHTML =
+      `<div class="sc-hero sc-hero--warn"><div class="sec-ico sec-ico--warn">${SEC_ICONS.alert}</div>
+       <div class="sc-hero__txt"><h3>No se pudo cargar</h3><p>${esc(err.message || 'Error de conexión')}</p></div>
+       <button class="sc-btn-sm" id="sc-retry">Reintentar</button></div>`;
+    document.getElementById('sc-retry').addEventListener('click', () => renderSecurityStatus());
+    return;
+  }
+  updateSecSide();
+  showSecTab(secState.tab, opts);
+}
+
+function setSecHeader(tab) {
+  const t = SEC_TABS[tab];
+  document.getElementById('sc-title').textContent = t.title;
+  document.getElementById('sc-sub').textContent = t.sub;
+  document.querySelectorAll('#sc-root [data-sc-tab]').forEach(b => b.classList.toggle('active', b.dataset.scTab === tab));
+}
+
+function showSecTab(tab, opts = {}) {
+  secState.tab = SEC_TABS[tab] ? tab : 'overview';
+  const body = document.getElementById('sc-body');
+  if (!body) return;
+  setSecHeader(secState.tab);
+  const view = { overview: secOverviewView, totp: secTotpView, passkeys: secPasskeysView, sessions: secSessionsView }[secState.tab];
+  body.innerHTML = `<div class="sc-view">${view.html(opts)}</div>`;
+  body.scrollTop = 0;
+  view.bind(body, opts);
+  if (opts.flash) {
+    const m = document.getElementById(opts.flash.id);
+    if (m) { m.textContent = opts.flash.text; m.className = 'sec-msg ' + (opts.flash.cls || ''); }
+  }
+}
+
+/* ── Resumen ─────────────────────────────────────────────── */
+const secOverviewView = {
+  html() {
+    const pk = secState.passkeys.length, ss = secState.sessions.length || 1;
+    const recos = [];
+    if (!secState.totp) recos.push({ ico: 'shield', warn: true, t: 'Activa la verificación en dos pasos', p: 'Es la protección más importante: sin ella, basta tu contraseña para entrar.', go: 'totp', b: 'Activar' });
+    if (secState.pkSupported && !pk) recos.push({ ico: 'phone', t: 'Registra tu celular como passkey', p: 'Entra escaneando un QR con tu huella, sin escribir contraseña.', go: 'passkeys:add', b: 'Agregar' });
+    if (ss > 1) recos.push({ ico: 'alert', warn: true, t: `Hay ${ss} sesiones abiertas`, p: 'Si no reconoces alguna, ciérrala desde Sesiones activas.', go: 'sessions', b: 'Revisar' });
+    return `
+      <div class="sc-stats">
+        <button class="sc-stat" data-go="totp"><i>→</i>
+          <div class="sec-ico ${secState.totp ? 'sec-ico--ok' : 'sec-ico--warn'}">${secState.totp ? SEC_ICONS.shieldCheck : SEC_ICONS.shield}</div>
+          <b>${secState.totp ? 'Activa' : 'Inactiva'}</b><span>Verificación en dos pasos</span></button>
+        <button class="sc-stat" data-go="passkeys"><i>→</i>
+          <div class="sec-ico">${SEC_ICONS.key}</div>
+          <b>${secState.pkSupported ? pk : '—'}</b><span>${pk === 1 ? 'Passkey registrada' : 'Passkeys registradas'}</span></button>
+        <button class="sc-stat" data-go="sessions"><i>→</i>
+          <div class="sec-ico ${ss > 1 ? 'sec-ico--warn' : 'sec-ico--ok'}">${SEC_ICONS.monitor}</div>
+          <b>${ss}</b><span>${ss === 1 ? 'Sesión activa' : 'Sesiones activas'}</span></button>
+      </div>
+      <div class="sc-h">Recomendaciones</div>
+      ${recos.length ? recos.map(r => `
+        <div class="sc-reco">
+          <div class="sec-ico ${r.warn ? 'sec-ico--warn' : ''}">${SEC_ICONS[r.ico]}</div>
+          <div class="sc-reco__txt"><strong>${r.t}</strong><p>${r.p}</p></div>
+          <button class="sc-btn-sm" data-go="${r.go}">${r.b}</button>
+        </div>`).join('') : `
+        <div class="sc-allgood">
+          <div class="sec-ico sec-ico--ok">${SEC_ICONS.check}</div>
+          <div><strong>Todo en orden</strong><p>Tienes activas todas las protecciones disponibles. No hay nada pendiente.</p></div>
+        </div>`}`;
+  },
+  bind(body) {
+    body.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => {
+      const [tab, extra] = b.dataset.go.split(':');
+      showSecTab(tab, { openForm: extra === 'add' });
+    }));
+  },
+};
+
+/* ── Verificación en dos pasos ───────────────────────────── */
+const secTotpView = {
+  html() {
+    if (secState.totp) return `
+      <div class="sc-hero sc-hero--ok">
+        <div class="sec-ico sec-ico--ok">${SEC_ICONS.shieldCheck}</div>
+        <div class="sc-hero__txt">
+          <h3>Protección activa <span class="sec-pill sec-pill--ok">Activada</span></h3>
+          <p>Cada vez que inicies sesión con usuario y contraseña, y al entrar a los módulos, se te pedirá el código de tu app autenticadora.</p>
+        </div>
+      </div>
+      <div class="sc-h">Cómo funciona</div>
+      <div class="sc-steps">
+        <div class="sc-step"><em>1</em><strong>Ingresas tu contraseña</strong><p>Como siempre, en la pantalla de inicio de sesión.</p></div>
+        <div class="sc-step"><em>2</em><strong>Abres tu app</strong><p>Google Authenticator, Authy o Microsoft Authenticator.</p></div>
+        <div class="sc-step"><em>3</em><strong>Escribes el código</strong><p>6 dígitos que cambian cada 30 segundos.</p></div>
+      </div>
+      <div class="sc-h">Zona de riesgo</div>
+      <div class="sc-panel sc-panel--danger">
+        <h4>Desactivar verificación en dos pasos</h4>
+        <p>Tu cuenta quedará protegida solo por contraseña. Confirma tu contraseña actual para continuar.</p>
+        <div class="sc-row">
+          <div class="field"><input type="password" id="sec-disable-password" placeholder="Contraseña actual" autocomplete="current-password"></div>
+          <button class="sec-btn sec-btn-danger-soft" id="sec-disable-btn">Desactivar</button>
+        </div>
+        <div class="sec-msg" id="sec-msg"></div>
+      </div>`;
+    return `
+      <div class="sc-hero sc-hero--warn">
+        <div class="sec-ico sec-ico--warn">${SEC_ICONS.shield}</div>
+        <div class="sc-hero__txt">
+          <h3>Tu cuenta solo usa contraseña <span class="sec-pill sec-pill--warn">Desactivada</span></h3>
+          <p>Agrega una capa extra: además de tu contraseña se pedirá un código de 6 dígitos de una app autenticadora. Es obligatorio para entrar a los módulos.</p>
+        </div>
+        <button class="sc-btn-sm" id="sec-start-btn">Activar ahora</button>
+      </div>
+      <div class="sec-msg" id="sec-msg"></div>
+      <div class="sc-h">Lo que necesitas</div>
+      <div class="sc-steps">
+        <div class="sc-step"><em>1</em><strong>Instala una app</strong><p>Google Authenticator, Authy o Microsoft Authenticator en tu celular.</p></div>
+        <div class="sc-step"><em>2</em><strong>Escanea el QR</strong><p>Te lo mostramos en el siguiente paso.</p></div>
+        <div class="sc-step"><em>3</em><strong>Confirma el código</strong><p>Escribe los 6 dígitos que muestra la app y listo.</p></div>
+      </div>`;
+  },
+  bind() {
+    if (secState.totp) {
+      document.getElementById('sec-disable-btn').addEventListener('click', disableTotp);
+      document.getElementById('sec-disable-password').addEventListener('keydown', (e) => { if (e.key === 'Enter') disableTotp(); });
+    } else {
+      document.getElementById('sec-start-btn').addEventListener('click', startTotpSetup);
+    }
+  },
+};
+
+/* ── Passkeys ─────────────────────────────────────────────
+   Registrar el celular (QR) o esta PC (Windows Hello) para entrar
+   desde login.html sin contraseña ni código 2FA. Registrar pide la
+   contraseña (y el 2FA si está activo) para que una sesión robada
+   no pueda agregarse una llave propia. */
+const secPasskeysView = {
+  html(opts) {
+    if (!secState.pkSupported) return `
+      <div class="sc-hero sc-hero--warn"><div class="sec-ico sec-ico--warn">${SEC_ICONS.alert}</div>
+        <div class="sc-hero__txt"><h3>Navegador no compatible</h3><p>Este navegador no soporta passkeys. Usa Chrome o Edge actualizados.</p></div></div>`;
+    if (secState.pkError) return `
+      <div class="sc-hero sc-hero--warn"><div class="sec-ico sec-ico--warn">${SEC_ICONS.alert}</div>
+        <div class="sc-hero__txt"><h3>No se pudieron cargar</h3><p>${esc(secState.pkError)}</p></div></div>`;
+    const list = secState.passkeys;
+    const fmt = d => d ? new Date(d).toLocaleString('es-PE', { dateStyle: 'medium', timeStyle: 'short' }) : 'Nunca';
+    const showForm = opts.openForm || !list.length;
+    return `
+      <div class="sc-devgrid">
+        ${list.map((p, i) => {
+          const pc = isPcPasskey(p.nombre);
+          return `
+          <div class="sc-dev" style="animation-delay:${i * 60}ms">
+            <button class="sec-link-danger" data-pk-del="${esc(String(p.id))}">Quitar</button>
+            <div class="sc-dev__top" style="padding-right:64px">
+              <div class="sec-ico">${pc ? SEC_ICONS.monitor : SEC_ICONS.phone}</div>
+              <div style="min-width:0">
+                <div class="sc-dev__name" title="${esc(p.nombre || 'Passkey')}">${esc(p.nombre || 'Passkey')}</div>
+                <div class="sc-dev__kind">${pc ? 'Computadora' : 'Celular'}</div>
+              </div>
+            </div>
+            <div class="sc-dev__meta">
+              <div><small>Último uso</small><span>${fmt(p.last_used_at)}</span></div>
+              <div><small>Creada</small><span>${fmt(p.created_at)}</span></div>
+            </div>
+          </div>`; }).join('')}
+        <button class="sc-dev sc-dev--add" id="sc-pk-add-card" style="animation-delay:${list.length * 60}ms">
+          ${SEC_ICONS.plus}<strong>Agregar dispositivo</strong><span>Celular con QR o esta PC</span>
+        </button>
+      </div>
+      <div class="sc-panel" id="sc-pk-form" ${showForm ? '' : 'hidden'}>
+        <h4>Agregar un dispositivo</h4>
+        <p>Confirma tu identidad y elige dónde guardar la passkey. La sesión iniciada con passkey dura ${secState.sessionHours} horas.</p>
+        <div class="sc-form">
+          <div class="field full"><input type="text" id="pk-name" maxlength="60" placeholder="Nombre del dispositivo (ej. Mi celular Samsung)"></div>
+          <div class="field ${secState.totp ? '' : 'full'}"><input type="password" id="pk-password" placeholder="Contraseña actual" autocomplete="current-password"></div>
+          ${secState.totp ? `<div class="field"><input type="text" id="pk-code" class="sec-code" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="Código 2FA"></div>` : ''}
+          <div class="sec-tiles full">
             <button class="sec-tile sec-tile--primary" id="pk-add-phone">
               ${SEC_ICONS.phone}<strong>Mi celular</strong><span>Escanea un QR y confirma con huella</span>
             </button>
@@ -1209,21 +1624,29 @@ async function renderPasskeys(totpEnabled) {
               ${SEC_ICONS.monitor}<strong>Esta PC</strong><span>Confirma con Windows Hello</span>
             </button>
           </div>
-          <div class="sec-msg" id="pk-msg"></div>
         </div>
-      </details>
-    `;
+        <div class="sec-msg" id="pk-msg"></div>
+      </div>`;
+  },
+  bind(body, opts) {
+    if (!secState.pkSupported || secState.pkError) return;
+    const form = document.getElementById('sc-pk-form');
+    document.getElementById('sc-pk-add-card').addEventListener('click', () => {
+      form.hidden = false;
+      form.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      document.getElementById('pk-name').focus({ preventScroll: true });
+    });
+    if (opts.openForm && secState.passkeys.length) setTimeout(() => form.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
     const codeEl = document.getElementById('pk-code');
     if (codeEl) codeEl.addEventListener('input', () => { codeEl.value = codeEl.value.replace(/\D/g, '').slice(0, 6); });
-    document.getElementById('pk-add-phone').addEventListener('click', () => registerPasskey('remoto', totpEnabled));
-    document.getElementById('pk-add-local').addEventListener('click', () => registerPasskey('local', totpEnabled));
-    box.querySelectorAll('[data-pk-del]').forEach(b => b.addEventListener('click', () => deletePasskey(b.dataset.pkDel, totpEnabled)));
-  } catch (err) {
-    box.innerHTML = `<p style="color:var(--danger);font-size:13px">${esc(err.message || 'No se pudieron cargar las passkeys')}</p>`;
-  }
-}
+    document.getElementById('pk-add-phone').addEventListener('click', () => registerPasskey('remoto'));
+    document.getElementById('pk-add-local').addEventListener('click', () => registerPasskey('local'));
+    body.querySelectorAll('[data-pk-del]').forEach(b => b.addEventListener('click', () => deletePasskey(b.dataset.pkDel)));
+  },
+};
 
-async function registerPasskey(tipo, totpEnabled) {
+async function registerPasskey(tipo) {
+  const totpEnabled = secState.totp;
   const msg = document.getElementById('pk-msg');
   const setMsg = (t, cls) => { msg.textContent = t; msg.className = 'sec-msg' + (cls ? ' ' + cls : ''); };
   const password = document.getElementById('pk-password').value;
@@ -1247,59 +1670,119 @@ async function registerPasskey(tipo, totpEnabled) {
     await secFetch('/api/auth/passkey/register/verify', {
       method: 'POST', body: JSON.stringify({ challenge_id: opt.challenge_id, response: credential, nombre }),
     });
-    await renderPasskeys(totpEnabled);
-    const m = document.getElementById('pk-msg');
-    if (m) {
-      m.closest('details')?.setAttribute('open', '');
-      m.textContent = '✓ Passkey registrada. Ya puedes entrar con ella desde el login.'; m.className = 'sec-msg success';
-    }
+    await renderSecurityStatus({
+      openForm: true,
+      flash: { id: 'pk-msg', text: '✓ Passkey registrada. Ya puedes entrar con ella desde el login.', cls: 'success' },
+    });
   } catch (err) {
     setMsg(err.message || 'No se pudo registrar la passkey', 'error');
     buttons.forEach(b => b.disabled = false);
   }
 }
 
-async function deletePasskey(id, totpEnabled) {
+async function deletePasskey(id) {
   if (!confirm('¿Quitar esta passkey? Ya no podrás entrar con ella.')) return;
   try {
     await secFetch('/api/auth/passkey/' + encodeURIComponent(id), { method: 'DELETE' });
-    await renderPasskeys(totpEnabled);
+    await renderSecurityStatus();
   } catch (err) {
     alert(err.message || 'No se pudo quitar la passkey');
   }
 }
 
+/* ── Sesiones activas ────────────────────────────────────── */
+const secSessionsView = {
+  html() {
+    if (secState.sessError) return `
+      <div class="sc-hero sc-hero--warn"><div class="sec-ico sec-ico--warn">${SEC_ICONS.alert}</div>
+        <div class="sc-hero__txt"><h3>No se pudieron cargar</h3><p>${esc(secState.sessError)}</p></div></div>`;
+    const list = [...secState.sessions].sort((a, b) => (b.current ? 1 : 0) - (a.current ? 1 : 0));
+    const others = list.filter(s => !s.current).length;
+    return `
+      ${others ? `
+        <div class="sc-hero sc-hero--warn">
+          <div class="sec-ico sec-ico--warn">${SEC_ICONS.alert}</div>
+          <div class="sc-hero__txt"><h3>${others === 1 ? 'Hay otra sesión abierta' : `Hay ${others} sesiones más abiertas`}</h3>
+            <p>Si no reconoces alguna, ciérralas y cambia tu contraseña.</p></div>
+          <button class="sc-btn-sm sc-btn-sm--danger" id="sc-close-others">Cerrar las demás</button>
+        </div>` : `
+        <div class="sc-allgood">
+          <div class="sec-ico sec-ico--ok">${SEC_ICONS.check}</div>
+          <div><strong>Solo esta sesión está abierta</strong><p>Al iniciar sesión en otro dispositivo, las sesiones anteriores se cierran automáticamente.</p></div>
+        </div>`}
+      <div class="sec-msg" id="sc-sess-msg" style="text-align:left;margin-top:8px"></div>
+      <div class="sc-h">Dispositivos</div>
+      <div>
+        ${list.map(s => {
+          const dev = sessionDeviceLabel(s.user_agent);
+          const mobile = dev === 'Dispositivo móvil';
+          return `
+          <div class="sc-sess ${s.current ? 'sc-sess--current' : ''}">
+            <div class="sec-ico ${s.current ? 'sec-ico--ok' : ''}">${mobile ? SEC_ICONS.phone : SEC_ICONS.monitor}</div>
+            <div class="sc-sess__info">
+              <strong>${s.current ? '<span class="sc-live"></span>Esta sesión' : esc(dev)}</strong>
+              <p>${s.current ? esc(dev) + ' · ' : ''}Inició el ${formatSessionDateTime(s.created_at)} · IP ${esc(s.ip_address || '—')}</p>
+            </div>
+            ${s.current ? '<span class="sec-pill sec-pill--ok">Actual</span>' : ''}
+          </div>`; }).join('')}
+      </div>`;
+  },
+  bind() {
+    const btn = document.getElementById('sc-close-others');
+    if (!btn) return;
+    btn.addEventListener('click', async () => {
+      btn.disabled = true; btn.textContent = 'Cerrando…';
+      try {
+        await secFetch('/api/auth/sessions/close-others', { method: 'POST' });
+        document.getElementById('multi-session-alert')?.classList.remove('show');
+        await renderSecurityStatus();
+      } catch (err) {
+        const m = document.getElementById('sc-sess-msg');
+        if (m) { m.textContent = err.message || 'No se pudieron cerrar las sesiones'; m.className = 'sec-msg error'; }
+        btn.disabled = false; btn.textContent = 'Cerrar las demás';
+      }
+    });
+  },
+};
+
+/* ── Alta de TOTP (también la usa la compuerta 2FA de módulos) ── */
 async function startTotpSetup() {
-  securityBody.innerHTML = `<p style="color:var(--text-muted);font-size:13px">Generando código…</p>`;
+  const panel = secPanel();
+  if (document.getElementById('sc-root')) setSecHeader('totp');
+  panel.innerHTML = `<div class="sc-skel"></div><div class="sc-skel" style="height:200px"></div>`;
   try {
     const data = await secFetch('/api/auth/totp/setup', { method: 'POST' });
-    securityBody.innerHTML = `
-      <p style="font-size:13px;line-height:1.6;margin-bottom:14px">
-        Escanea este código QR con tu app autenticadora (Google Authenticator, Authy, etc.):
-      </p>
-      <div style="text-align:center;margin-bottom:14px">
-        <img src="${data.qr}" alt="Código QR" style="width:200px;height:200px;border:1px solid var(--border);border-radius:10px;padding:8px">
-      </div>
-      <p style="font-size:11.5px;color:var(--text-muted);text-align:center;margin-bottom:18px">
-        ¿No puedes escanear? Ingresa esta clave manualmente:<br>
-        <code style="font-size:12px;font-weight:700;letter-spacing:.05em;user-select:all">${data.secret}</code>
-      </p>
-      <p style="font-size:12.5px;color:var(--text-muted);margin-bottom:10px">
-        Luego, ingresa el código de 6 dígitos que te muestra la app para confirmar:
-      </p>
-      <div class="field"><input type="text" id="sec-confirm-code" inputmode="numeric" maxlength="6" placeholder="Código de 6 dígitos" style="text-align:center;letter-spacing:.3em;font-weight:700"></div>
-      <button class="sec-btn" id="sec-confirm-btn">Confirmar y activar</button>
-      <button class="sec-btn sec-btn-outline" id="sec-cancel-btn" style="margin-top:8px">Cancelar</button>
-      <div class="sec-msg" id="sec-msg"></div>
-    `;
+    panel.innerHTML = `
+      <div class="sc-view">
+        <div class="sc-setup">
+          <div class="sc-qr">
+            <img src="${data.qr}" alt="Código QR">
+            <small>¿No puedes escanear? Ingresa esta clave:</small>
+            <code>${esc(data.secret)}</code>
+          </div>
+          <div>
+            <div class="sc-steps" style="grid-template-columns:1fr;gap:8px">
+              <div class="sc-step" style="display:flex;gap:12px;align-items:flex-start;padding:12px 14px"><em style="margin:0">1</em><div><strong>Abre tu app autenticadora</strong><p>Google Authenticator, Authy o Microsoft Authenticator.</p></div></div>
+              <div class="sc-step" style="display:flex;gap:12px;align-items:flex-start;padding:12px 14px"><em style="margin:0">2</em><div><strong>Escanea el código QR</strong><p>O agrega la cuenta manualmente con la clave.</p></div></div>
+              <div class="sc-step" style="display:flex;gap:12px;align-items:flex-start;padding:12px 14px"><em style="margin:0">3</em><div><strong>Escribe el código de 6 dígitos</strong><p>El que muestra la app ahora mismo.</p></div></div>
+            </div>
+            <div class="field" style="margin-top:14px"><input type="text" id="sec-confirm-code" class="sec-code" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="000000" style="height:52px;font-size:20px"></div>
+            <div style="display:flex;gap:8px">
+              <button class="sec-btn sec-btn-outline" id="sec-cancel-btn" style="flex:1">Cancelar</button>
+              <button class="sec-btn" id="sec-confirm-btn" style="flex:2">Confirmar y activar</button>
+            </div>
+            <div class="sec-msg" id="sec-msg"></div>
+          </div>
+        </div>
+      </div>`;
     const codeInput = document.getElementById('sec-confirm-code');
     codeInput.addEventListener('input', () => { codeInput.value = codeInput.value.replace(/\D/g, '').slice(0, 6); });
     codeInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') confirmTotpSetup(); });
     document.getElementById('sec-confirm-btn').addEventListener('click', confirmTotpSetup);
-    document.getElementById('sec-cancel-btn').addEventListener('click', renderSecurityStatus);
+    document.getElementById('sec-cancel-btn').addEventListener('click', () => renderSecurityStatus());
     codeInput.focus();
   } catch (err) {
-    securityBody.innerHTML = `<p style="color:var(--danger);font-size:13px">${err.message || 'No se pudo generar el código'}</p>`;
+    panel.innerHTML = `<p style="color:var(--danger);font-size:13px">${esc(err.message || 'No se pudo generar el código')}</p>`;
   }
 }
 
@@ -1323,6 +1806,7 @@ async function confirmTotpSetup() {
       }, 500);
       return;
     }
+    secState.tab = 'totp';
     await renderSecurityStatus();
   } catch (err) {
     msg.textContent = err.message || 'Código inválido';
@@ -1343,7 +1827,7 @@ async function disableTotp() {
   } catch (err) {
     msg.textContent = err.message || 'No se pudo desactivar';
     msg.className = 'sec-msg error';
-    btn.disabled = false; btn.textContent = 'Desactivar verificación en dos pasos';
+    btn.disabled = false; btn.textContent = 'Desactivar';
   }
 }
 
@@ -1816,6 +2300,7 @@ async function doEnterModule(mod) {
 function openModule2faGate(mod) {
   pendingGateMod = mod;
   gateSubmitInFlight = false;
+  secModalBox.classList.remove('sec-modal--wide');
   const meta = MODULE_META[mod] || { label: mod, desc: '', icon: ICONS.cpu, accent: '#4f46e5', accentLight: '#eef2ff' };
   const modalTitle = document.querySelector('#security-modal .sec-modal__head h3');
   if (modalTitle) modalTitle.textContent = `Acceso a ${meta.label}`;
