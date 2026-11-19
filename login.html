@@ -250,6 +250,7 @@
         <div class="login-tabs">
           <button type="button" class="login-tab tab-active" id="tab-password">Usuario y contraseña</button>
           <button type="button" class="login-tab" id="tab-face">Reconocimiento facial</button>
+          <button type="button" class="login-tab" id="tab-passkey">Passkey</button>
         </div>
 
         <div id="password-panel">
@@ -303,6 +304,24 @@
           <button class="submit" type="button" id="faceCancelBtn" style="background:#fff;color:var(--text);border:1px solid var(--border);box-shadow:none;">Usar usuario y contraseña</button>
         </div>
 
+        <div id="passkey-panel" style="display:none; text-align:center;">
+          <div class="location-icon-wrap">
+            <svg viewBox="0 0 24 24" style="width:30px; height:30px; fill:currentColor;" aria-hidden="true">
+              <path d="M17 1H7a2 2 0 0 0-2 2v18a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2Zm0 18H7V5h10v14Zm-5-11a2.5 2.5 0 0 0-1 4.79V16h2v-1h1v-1.5h-1v-.71A2.5 2.5 0 0 0 12 8Zm0 1.5a1 1 0 1 1 0 2 1 1 0 0 1 0-2Z"/>
+            </svg>
+          </div>
+          <p style="font-size:13.5px; color:var(--text-muted); line-height:1.6; margin-bottom:18px;">
+            Entra sin contraseña ni código 2FA. Al presionar el botón, elige
+            <strong>"Usar un teléfono"</strong>, escanea el QR con tu celular y confirma con tu huella.
+            Ten el <strong>Bluetooth encendido</strong> en ambos.
+          </p>
+          <button class="submit" type="button" id="passkeyBtn">Entrar con passkey</button>
+          <div id="passkeyMessage" class="message"></div>
+          <p style="font-size:11.5px; color:var(--text-muted); line-height:1.6; margin-top:14px;">
+            ¿Aún no tienes passkey? Entra con usuario y contraseña y regístrala en <strong>Seguridad</strong>.
+          </p>
+        </div>
+
         <div id="location-panel" style="display:none; text-align:center;">
           <div class="location-icon-wrap">
             <div class="location-pulse" id="location-pulse"></div>
@@ -334,6 +353,7 @@
     </section>
   </main>
 
+<script src="passkey.js"></script>
 <script>
 'use strict';
 
@@ -603,15 +623,36 @@ function stopFaceStream() {
   faceVideo.srcObject = null;
 }
 
+const tabPasskey   = document.getElementById('tab-passkey');
+const passkeyPanel = document.getElementById('passkey-panel');
+
 tabPassword.addEventListener('click', showPasswordPanel);
 tabFace.addEventListener('click', () => { showFacePanel(); startFaceLogin(); });
+tabPasskey.addEventListener('click', showPasskeyPanel);
 faceCancelBtn.addEventListener('click', showPasswordPanel);
+
+function activateTab(tab) {
+  [tabPassword, tabFace, tabPasskey].forEach(t => t.classList.toggle('tab-active', t === tab));
+}
 
 function showFacePanel() {
   passwordPanel.style.display = 'none';
+  passkeyPanel.style.display = 'none';
   facePanel.style.display = 'block';
-  tabPassword.classList.remove('tab-active');
-  tabFace.classList.add('tab-active');
+  activateTab(tabFace);
+}
+
+function showPasskeyPanel() {
+  faceLoopActive = false;
+  stopFaceStream();
+  passwordPanel.style.display = 'none';
+  facePanel.style.display = 'none';
+  passkeyPanel.style.display = 'block';
+  activateTab(tabPasskey);
+  if (!window.QubiraPasskey || !QubiraPasskey.supported()) {
+    showPasskeyMessage('Este navegador no soporta passkeys. Usa Chrome o Edge actualizados.', false);
+    passkeyBtn.disabled = true;
+  }
 }
 
 function showPasswordPanel() {
@@ -619,12 +660,63 @@ function showPasswordPanel() {
   stopFaceStream();
   locationPanel.style.display = 'none';
   facePanel.style.display = 'none';
+  passkeyPanel.style.display = 'none';
   passwordPanel.style.display = 'block';
   const tabs = document.querySelector('.login-tabs');
   if (tabs) tabs.style.display = 'flex';
-  tabFace.classList.remove('tab-active');
-  tabPassword.classList.add('tab-active');
+  activateTab(tabPassword);
 }
+
+/* ============================================================
+   Passkey (WebAuthn) — el navegador muestra sus passkeys guardadas y
+   la opción "Usar un teléfono" (QR + Bluetooth). No se pide usuario:
+   el servidor reconoce la cuenta por la passkey. La sesión que emite
+   dura 2 horas y no pide el código 2FA (la passkey ya es 2 factores).
+   ============================================================ */
+const passkeyBtn     = document.getElementById('passkeyBtn');
+const passkeyMessage = document.getElementById('passkeyMessage');
+
+function showPasskeyMessage(text, success) {
+  passkeyMessage.textContent = text;
+  passkeyMessage.className = 'message' + (success === true ? ' success' : success === false ? ' error' : '');
+}
+
+passkeyBtn.addEventListener('click', async () => {
+  passkeyBtn.disabled = true;
+  passkeyBtn.textContent = 'Esperando tu celular...';
+  showPasskeyMessage('Elige "Usar un teléfono" y escanea el QR.', null);
+  try {
+    const optRes = await fetch(`${QR_API_BASE}/api/auth/passkey/login/options`, { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+    const opt = await optRes.json().catch(() => ({}));
+    if (!optRes.ok || !opt.ok) throw new Error(opt.error || 'No se pudo iniciar el ingreso.');
+
+    let credential;
+    try { credential = await QubiraPasskey.get(opt.options); }
+    catch (err) { throw new Error(QubiraPasskey.friendlyError(err)); }
+
+    showPasskeyMessage('Verificando...', null);
+    const res = await fetch(`${QR_API_BASE}/api/auth/passkey/login/verify`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ challenge_id: opt.challenge_id, response: credential }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.ok) throw new Error(data.error || 'No se pudo verificar la passkey.');
+
+    localStorage.setItem('qubira_token', data.token);
+    localStorage.setItem('qubira_user', JSON.stringify(data.user));
+    showPasskeyMessage(`¡Bienvenido, ${data.user.nombre}! Sesión de ${data.session_hours || 2} h. Solicitando ubicación...`, true);
+    setTimeout(() => {
+      passkeyPanel.style.display = 'none';
+      showLocationPanel(data.token, data.user);
+    }, 500);
+  } catch (err) {
+    showPasskeyMessage(err.message, false);
+  } finally {
+    passkeyBtn.disabled = false;
+    passkeyBtn.textContent = 'Entrar con passkey';
+  }
+});
 
 async function startFaceLogin() {
   setFaceStatus('Cargando reconocimiento facial...', 'idle');
@@ -723,6 +815,7 @@ function showLocationPanel(token, user) {
   passwordPanel.style.display = 'none';
   totpPanel.style.display     = 'none';
   facePanel.style.display     = 'none';
+  passkeyPanel.style.display  = 'none';
 
   // Mostrar panel de ubicación
   locationPanel.style.display = 'block';

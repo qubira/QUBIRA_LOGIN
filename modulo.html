@@ -852,6 +852,7 @@
     </div>
   </aside>
 
+<script src="passkey.js"></script>
 <script>
 'use strict';
 
@@ -985,7 +986,7 @@ securityModal.addEventListener('click', (e) => { if (e.target === securityModal)
 
 function openSecurityModal() {
   const modalTitle = document.querySelector('#security-modal .sec-modal__head h3');
-  if (modalTitle) modalTitle.textContent = 'Verificación en dos pasos';
+  if (modalTitle) modalTitle.textContent = 'Seguridad de la cuenta';
   securityModal.classList.add('open');
   renderSecurityStatus();
 }
@@ -1027,8 +1028,104 @@ async function renderSecurityStatus() {
       `;
       document.getElementById('sec-start-btn').addEventListener('click', startTotpSetup);
     }
+    securityBody.insertAdjacentHTML('beforeend',
+      '<div id="pk-section" style="margin-top:22px;padding-top:18px;border-top:1px solid var(--border)"></div>');
+    renderPasskeys(!!data.enabled);
   } catch (err) {
     securityBody.innerHTML = `<p style="color:var(--danger);font-size:13px">${err.message || 'No se pudo cargar'}</p>`;
+  }
+}
+
+/* ============================================================
+   Passkeys — registrar el celular (QR) o esta PC (Windows Hello)
+   para entrar desde login.html sin contraseña ni código 2FA.
+   Registrar pide la contraseña (y el 2FA si está activo) para que
+   una sesión robada no pueda agregarse una llave propia.
+   ============================================================ */
+async function renderPasskeys(totpEnabled) {
+  const box = document.getElementById('pk-section');
+  if (!box) return;
+  box.innerHTML = `<p style="color:var(--text-muted);font-size:13px">Cargando passkeys…</p>`;
+  if (!window.QubiraPasskey || !QubiraPasskey.supported()) {
+    box.innerHTML = `<h4 style="font-size:14px;margin-bottom:6px">Passkeys</h4>
+      <p style="font-size:12.5px;color:var(--text-muted)">Este navegador no soporta passkeys. Usa Chrome o Edge actualizados.</p>`;
+    return;
+  }
+  try {
+    const data = await secFetch('/api/auth/passkey/list');
+    const list = data.passkeys || [];
+    const fmt = d => d ? new Date(d).toLocaleString('es-PE', { dateStyle: 'medium', timeStyle: 'short' }) : 'nunca';
+    box.innerHTML = `
+      <h4 style="font-size:14px;margin-bottom:6px">Passkeys (ingreso sin contraseña)</h4>
+      <p style="font-size:12.5px;color:var(--text-muted);line-height:1.6;margin-bottom:12px">
+        Entra desde el login con tu celular (QR + huella) o con Windows Hello, sin contraseña ni código 2FA.
+        La sesión dura ${data.session_hours || 2} horas.
+      </p>
+      ${list.length ? `<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px">${list.map(p => `
+        <div style="display:flex;align-items:center;gap:10px;border:1px solid var(--border);border-radius:10px;padding:10px 12px">
+          <div style="flex:1;min-width:0">
+            <strong style="font-size:13px">${esc(p.nombre || 'Passkey')}</strong>
+            <div style="font-size:11.5px;color:var(--text-muted)">Creada ${fmt(p.created_at)} · Último uso: ${fmt(p.last_used_at)}</div>
+          </div>
+          <button class="sec-btn sec-btn-outline" data-pk-del="${p.id}" style="width:auto;padding:6px 12px;font-size:12px">Quitar</button>
+        </div>`).join('')}</div>` : ''}
+      <div class="field"><input type="text" id="pk-name" maxlength="60" placeholder="Nombre (ej. Mi celular Samsung)"></div>
+      <div class="field"><input type="password" id="pk-password" placeholder="Contraseña actual"></div>
+      ${totpEnabled ? `<div class="field"><input type="text" id="pk-code" inputmode="numeric" maxlength="6" placeholder="Código 2FA (6 dígitos)" style="text-align:center;letter-spacing:.3em;font-weight:700"></div>` : ''}
+      <button class="sec-btn" id="pk-add-phone">Registrar mi celular (QR)</button>
+      <button class="sec-btn sec-btn-outline" id="pk-add-local" style="margin-top:8px">Registrar esta PC (Windows Hello)</button>
+      <div class="sec-msg" id="pk-msg"></div>
+    `;
+    const codeEl = document.getElementById('pk-code');
+    if (codeEl) codeEl.addEventListener('input', () => { codeEl.value = codeEl.value.replace(/\D/g, '').slice(0, 6); });
+    document.getElementById('pk-add-phone').addEventListener('click', () => registerPasskey('remoto', totpEnabled));
+    document.getElementById('pk-add-local').addEventListener('click', () => registerPasskey('local', totpEnabled));
+    box.querySelectorAll('[data-pk-del]').forEach(b => b.addEventListener('click', () => deletePasskey(b.dataset.pkDel, totpEnabled)));
+  } catch (err) {
+    box.innerHTML = `<p style="color:var(--danger);font-size:13px">${esc(err.message || 'No se pudieron cargar las passkeys')}</p>`;
+  }
+}
+
+async function registerPasskey(tipo, totpEnabled) {
+  const msg = document.getElementById('pk-msg');
+  const setMsg = (t, cls) => { msg.textContent = t; msg.className = 'sec-msg' + (cls ? ' ' + cls : ''); };
+  const password = document.getElementById('pk-password').value;
+  const code = (document.getElementById('pk-code') || {}).value || '';
+  const nombre = document.getElementById('pk-name').value.trim() || (tipo === 'local' ? 'Esta PC (Windows Hello)' : 'Mi celular');
+  if (!password) return setMsg('Ingresa tu contraseña actual.', 'error');
+  if (totpEnabled && code.length !== 6) return setMsg('Ingresa el código 2FA de 6 dígitos.', 'error');
+
+  const buttons = [document.getElementById('pk-add-phone'), document.getElementById('pk-add-local')];
+  buttons.forEach(b => b.disabled = true);
+  try {
+    setMsg('Preparando…');
+    const opt = await secFetch('/api/auth/passkey/register/options', {
+      method: 'POST', body: JSON.stringify({ password, code, tipo }),
+    });
+    setMsg(tipo === 'local' ? 'Confirma con tu huella o PIN de Windows…' : 'Elige "Usar un teléfono" y escanea el QR con tu celular…');
+    let credential;
+    try { credential = await QubiraPasskey.create(opt.options); }
+    catch (err) { throw new Error(QubiraPasskey.friendlyError(err)); }
+    setMsg('Guardando…');
+    await secFetch('/api/auth/passkey/register/verify', {
+      method: 'POST', body: JSON.stringify({ challenge_id: opt.challenge_id, response: credential, nombre }),
+    });
+    await renderPasskeys(totpEnabled);
+    const m = document.getElementById('pk-msg');
+    if (m) { m.textContent = '✓ Passkey registrada. Ya puedes entrar con ella desde el login.'; m.className = 'sec-msg success'; }
+  } catch (err) {
+    setMsg(err.message || 'No se pudo registrar la passkey', 'error');
+    buttons.forEach(b => b.disabled = false);
+  }
+}
+
+async function deletePasskey(id, totpEnabled) {
+  if (!confirm('¿Quitar esta passkey? Ya no podrás entrar con ella.')) return;
+  try {
+    await secFetch('/api/auth/passkey/' + encodeURIComponent(id), { method: 'DELETE' });
+    await renderPasskeys(totpEnabled);
+  } catch (err) {
+    alert(err.message || 'No se pudo quitar la passkey');
   }
 }
 
