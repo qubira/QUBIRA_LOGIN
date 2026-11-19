@@ -1642,9 +1642,14 @@ function renderModules(authorizedModules) {
    el sistema solicita la clave de verificación en dos pasos (TOTP de 6 dígitos)
    antes de autorizar el traspaso (handoff) y redirigir al panel correspondiente. */
 let pendingGateMod = null;
+/* Con qué se inició esta sesión (lo informa /api/auth/me). Si fue con
+   passkey, ya se probaron 2 factores (dispositivo + huella/PIN) al
+   entrar: no se vuelve a pedir el código 2FA para abrir los módulos. */
+let sessionAuthMethod = 'password';
 
 async function enterModule(mod) {
   if (!MODULE_TARGETS[mod]) return;
+  if (sessionAuthMethod === 'passkey') return doEnterModule(mod);
   openModule2faGate(mod);
 }
 
@@ -1805,6 +1810,7 @@ async function checkMe(token) {
   }
   const data = await res.json();
   localStorage.setItem('qubira_user', JSON.stringify(data.user));
+  sessionAuthMethod = data.user.auth_method || 'password';
   renderSession(data.user);
   renderModules(data.user.authorized_modules || []);
   return true;
