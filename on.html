@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Oficina Notarial · Qubira</title>
+  <style>
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    body { margin: 0; background: #f3f4f6; color: #172033; font: 15px/1.5 system-ui, sans-serif; }
+    header { background: #111827; color: white; border-bottom: 3px solid #0f766e; }
+    .barra, main { width: min(1080px, calc(100% - 32px)); margin: auto; }
+    .barra { min-height: 64px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .barra a { color: #d1d5db; text-decoration: none; }
+    main { padding: 25px 0 40px; }
+    h1, h2, p { margin: 0; }
+    h1 { font-size: 27px; }
+    h2 { font-size: 17px; }
+    .muted { color: #526174; }
+    .acciones { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 18px; }
+    .card, dialog { background: white; border: 1px solid #dfe4eb; border-radius: 12px; box-shadow: 0 1px 2px #17203312; }
+    .card { overflow: hidden; }
+    .filtros { margin: 0; padding: 14px; display: flex; flex-wrap: wrap; align-items: end; gap: 12px; }
+    .filtros label:first-child { flex: 1 1 220px; }
+    label { display: grid; gap: 4px; font-weight: 600; font-size: 13px; }
+    input, select, textarea, button { font: inherit; }
+    input, select, textarea { width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 7px; background: white; color: #172033; }
+    textarea { resize: vertical; }
+    button { padding: 8px 13px; border: 1px solid #cbd5e1; border-radius: 7px; background: white; color: #172033; cursor: pointer; font-weight: 600; }
+    button:disabled { opacity: .55; cursor: wait; }
+    .primary { background: #0f766e; border-color: #0f766e; color: white; }
+    button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 2px solid #0f766e; outline-offset: 2px; }
+    .tabla { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    th, td { padding: 10px 14px; border-top: 1px solid #edf0f4; }
+    th { background: #f8fafc; font-size: 12px; }
+    .estado { display: inline-block; padding: 3px 8px; border-radius: 20px; background: #e5e7eb; font-size: 12px; white-space: nowrap; }
+    .estado[data-estado="en_revision"] { color: #1e40af; background: #dbeafe; }
+    .estado[data-estado="observado"] { color: #92400e; background: #fef3c7; }
+    .estado[data-estado="revisado"] { color: #065f46; background: #d1fae5; }
+    #resultado, #mensaje { padding: 12px 14px; }
+    #mensaje:empty, #error-editor:empty { display: none; }
+    .error { color: #991b1b; }
+    dialog { width: min(490px, calc(100% - 24px)); padding: 18px; }
+    dialog::backdrop { background: #11182785; }
+    dialog form { display: grid; gap: 12px; }
+    footer { display: flex; justify-content: flex-end; gap: 8px; }
+  </style>
+  <script type="module" src="/on.js"></script>
+</head>
+<body>
+  <header><div class="barra"><strong>QUBIRA · ON</strong><a href="/modulo.html">Volver a módulos</a></div></header>
+  <main>
+    <div class="acciones">
+      <div><h1>Oficina Notarial</h1><p class="muted">Registro y revisión documental interna</p></div>
+      <button id="nuevo" type="button" class="primary" disabled>Registrar documento</button>
+    </div>
+    <p id="mensaje" role="status"></p>
+    <section class="card" id="registro" aria-label="Registro documental" hidden>
+      <div class="filtros">
+        <label>Buscar documento<input id="buscar" type="search" placeholder="Referencia o título"></label>
+        <label>Estado<select id="filtro"><option value="">Todos los estados</option></select></label>
+      </div>
+      <div class="tabla">
+        <table><thead><tr><th>Referencia</th><th>Título</th><th>Estado</th><th>Última actualización</th><th>Acción</th></tr></thead><tbody id="filas"></tbody></table>
+      </div>
+      <p id="resultado" class="muted" role="status"></p>
+    </section>
+  </main>
+  <dialog id="editor" aria-labelledby="titulo-editor">
+    <form id="formulario">
+      <h2 id="titulo-editor"></h2>
+      <label>Referencia del documento<input id="referencia" maxlength="80" required placeholder="Ej. OTI-INF-2026-001"></label>
+      <label>Título<input id="titulo" maxlength="200" required></label>
+      <label id="campo-estado" hidden>Estado<select id="estado"></select></label>
+      <label id="campo-observacion" hidden>Observación<textarea id="observacion" maxlength="2000" rows="4"></textarea></label>
+      <p id="error-editor" class="error" role="alert"></p>
+      <footer><button id="cancelar" type="button">Cancelar</button><button id="guardar" type="submit" class="primary">Guardar</button></footer>
+    </form>
+  </dialog>
+</body>
+</html>

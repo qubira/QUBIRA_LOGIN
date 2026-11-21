@@ -1162,6 +1162,7 @@ document.getElementById('env-badge').textContent = IS_LOCAL ? 'Entorno de desarr
    no hay rutas internas compartidas. OPP cuenta con su propio panel
    desplegado para presupuestos, costeo y precios comerciales. */
 const MODULE_TARGETS = {
+  ON:        location.origin,
   TI:        IS_LOCAL ? 'http://localhost:5511' : 'https://qubira-ti.vercel.app',
   ADG:       IS_LOCAL ? 'http://localhost:5512' : 'https://qubira-adg.vercel.app',
   GG:        IS_LOCAL ? 'http://localhost:5512' : 'https://qubira-adg.vercel.app',
@@ -1184,6 +1185,7 @@ const MODULE_TARGETS = {
    con un login.html aparte que recibe el traspaso — mandarlo a la raíz
    haría que el gate de sesión de index.html lo descarte antes de leerlo. */
 const MODULE_HANDOFF_PATH = {
+  ON: '/on.html',
   TI: '/', ADG: '/', GG: '/gg.html', RRHH: '/login.html', SOPORTE: '/login.html', OCOS: '/login.html', DST: '/login.html', COMERCIAL: '/login.html', ODN: '/login.html', OPP: '/login.html', CG: '/login.html', ODACL: '/login.html', DJ: '/login.html', OCM: '/login.html', ACM: '/login.html'
 };
 
@@ -1205,6 +1207,7 @@ const ICONS = {
 };
 
 const MODULE_META = {
+  ON:        { label: 'ON · Oficina Notarial', desc: 'Registro y revisión interna de documentos.', icon: ICONS.scale, accent: '#0f766e', accentLight: '#ccfbf1', group: 'ops' },
   TI:        { label: 'OTI',        desc: 'Proyectos técnicos, tecnologías y cronogramas.', icon: ICONS.cpu,       accent: '#1d4ed8', accentLight: '#dbeafe', group: 'ops' },
   ADG:       { label: 'ADG',        desc: 'Aprobación y administración de proyectos.',       icon: ICONS.clipboard, accent: '#6d28d9', accentLight: '#ede9fe', group: 'ops' },
   GG:        { label: 'GG',         desc: 'Gerencia General: aprobación y administración de proyectos, con las mismas herramientas que ADG.', icon: ICONS.clipboard, accent: '#4338ca', accentLight: '#e0e7ff', group: 'ops' },
